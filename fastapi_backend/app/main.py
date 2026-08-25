@@ -13,13 +13,15 @@ from app.models import (
     CartItem,
     Order,
     OrderItem,
-    Payment
+    Payment,
+    Notification,
 )
 
 from app.routes.product import router as product_router
 from app.routes.cart import router as cart_router
 from app.routes.auth import router as auth_router
 from app.routes.checkout import router as checkout_router
+from app.routes.notifications import router as notifications_router
 
 
 # Create tables
@@ -76,6 +78,10 @@ app.include_router(
 
 app.include_router(
     checkout_router
+)
+
+app.include_router(
+    notifications_router
 )
 
 

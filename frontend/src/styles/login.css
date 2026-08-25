@@ -266,3 +266,18 @@
 .login-signup a:hover {
   color: #c53030;
 }
+
+.login-signup-button {
+  background: transparent;
+  border: 0;
+  color: #e8567d;
+  cursor: pointer;
+  font: inherit;
+  font-weight: 600;
+  margin-left: 5px;
+  padding: 0;
+}
+
+.login-signup-button:hover {
+  color: #c53030;
+}

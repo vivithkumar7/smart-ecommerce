@@ -19,13 +19,19 @@ python manage.py createsuperuser
 python manage.py runserver 127.0.0.1:8001
 ```
 
+Before opening Store users, apply
+`fastapi_backend/migrations/001_user_roles_and_activation.sql` to the shared
+MySQL database. The migration adds `role` and `is_active` to storefront users.
+The Store users form supports Customer, Staff, and Admin roles and account
+activation/deactivation. Deactivated users cannot use the FastAPI storefront.
+
 For a non-interactive superuser setup, run this entire block in the same
 terminal. The password is not displayed by PowerShell when you type it:
 
 ```powershell
 $env:DJANGO_SUPERUSER_USERNAME = "admin"
 $env:DJANGO_SUPERUSER_EMAIL = "admin@example.com"
-$env:DJANGO_SUPERUSER_PASSWORD = "UseYourOwnStrongPassword"
+$env:DJANGO_SUPERUSER_PASSWORD = "Admin@12345"
 python manage.py createsuperuser --noinput
 Remove-Item Env:DJANGO_SUPERUSER_USERNAME, Env:DJANGO_SUPERUSER_EMAIL, Env:DJANGO_SUPERUSER_PASSWORD
 ```
@@ -46,6 +52,17 @@ cannot log in to `/admin/`.
 The Django auth tables are used only for admin login. The storefront `users`
 table is shown as `StoreUser`; its email and password can be edited from the
 admin form. Passwords are hashed with `pbkdf2_sha256`, matching FastAPI.
+
+## Analytics and reports
+
+Open `http://127.0.0.1:8001/admin/analytics/` while logged in as staff. The
+dashboard shows total sales, revenue trends, top-selling products, and low
+stock alerts using Chart.js. It also provides Orders, Sales, and Users exports
+as CSV and PDF.
+
+Product creation supports name, description, category, price, stock,
+popularity, active status, image URL, and local image upload. Uploaded images
+are stored under `django_admin/media/products/`.
 
 ## Planned responsibilities
 

@@ -3,11 +3,16 @@ import {
   useNavigate,
 } from "react-router-dom";
 
+import { markNotificationsRead }
+  from "../api/notificationApi";
+
 import "../styles/navbar.css";
 
 
 export default function Navbar({
   cartCount,
+  notifications,
+  setNotifications,
 }) {
 
   const navigate =
@@ -18,6 +23,19 @@ export default function Navbar({
     localStorage.getItem(
       "access_token"
     );
+
+  const unreadCount = notifications.filter(
+    (notification) => !notification.read_status,
+  ).length;
+
+  const handleRead = async (notificationId) => {
+    await markNotificationsRead([notificationId]);
+    setNotifications((current) => current.map((notification) =>
+      notification.id === notificationId
+        ? { ...notification, read_status: true }
+        : notification,
+    ));
+  };
 
 
   const handleLogout = () => {
@@ -75,6 +93,34 @@ export default function Navbar({
                 )}
 
               </Link>
+
+              <div className="notification-menu">
+                <button className="notification-button" type="button">
+                  Notifications
+                  {unreadCount > 0 && (
+                    <span className="notification-count">{unreadCount}</span>
+                  )}
+                </button>
+                <div className="notification-panel">
+                  {notifications.length === 0 && <p>No notifications yet.</p>}
+                  {notifications.slice(0, 6).map((notification) => (
+                    <button
+                      className={`notification-item${notification.read_status ? " is-read" : ""}`}
+                      key={notification.id}
+                      onClick={() => handleRead(notification.id)}
+                      type="button"
+                    >
+                      <strong>{notification.type.replaceAll("_", " ")}</strong>
+                      <span>{notification.message}</span>
+                    </button>
+                  ))}
+                  {notifications.length > 0 && (
+                    <Link className="notification-history-link" to="/notifications">
+                      View all notifications
+                    </Link>
+                  )}
+                </div>
+              </div>
 
 
               <button

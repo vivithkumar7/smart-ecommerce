@@ -2,9 +2,17 @@ from django.db import models
 
 
 class StoreUser(models.Model):
+    ROLE_CHOICES = (
+        ("customer", "Customer"),
+        ("staff", "Staff"),
+        ("admin", "Admin"),
+    )
+
     id = models.AutoField(primary_key=True)
     email = models.EmailField(max_length=255, unique=True)
     password = models.CharField(max_length=255)
+    role = models.CharField(max_length=20, choices=ROLE_CHOICES, default="customer")
+    is_active = models.BooleanField(default=True)
 
     class Meta:
         managed = False

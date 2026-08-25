@@ -1,0 +1,73 @@
+{% extends "admin/base_site.html" %}
+{% load static %}
+{% block title %}Analytics | {{ site_title }}{% endblock %}
+{% block extrastyle %}
+  {{ block.super }}
+  <link rel="stylesheet" href="{% static 'adminapp/analytics.css' %}">
+{% endblock %}
+{% block content %}
+<div id="analytics-dashboard">
+  <header class="analytics-hero">
+    <div>
+      <p class="analytics-kicker">SmartShop / Overview</p>
+      <h1>Store performance</h1>
+      <p class="analytics-intro">A clear view of your sales, customers, and inventory health.</p>
+    </div>
+    <a class="analytics-home-link" href="{% url 'admin:index' %}">Back to admin</a>
+  </header>
+  <div class="analytics-summary">
+    <div class="module analytics-card analytics-card-sales"><span class="analytics-card-label">Paid orders</span><strong>{{ total_sales }}</strong><small>Completed sales</small></div>
+    <div class="module analytics-card analytics-card-revenue"><span class="analytics-card-label">Total revenue</span><strong>{{ total_revenue }}</strong><small>Across all paid orders</small></div>
+    <div class="module analytics-card analytics-card-users"><span class="analytics-card-label">Customers</span><strong>{{ total_users }}</strong><small>Registered accounts</small></div>
+  </div>
+  <div class="analytics-grid">
+  <div class="module analytics-module analytics-revenue-panel">
+    <div class="analytics-panel-heading"><div><span class="analytics-panel-label">Last 30 days</span><h2>Revenue trend</h2></div><span class="analytics-panel-mark">REVENUE</span></div>
+    <div class="analytics-chart"><canvas id="revenue-chart"></canvas></div>
+  </div>
+  <div class="module analytics-module analytics-products-panel">
+    <div class="analytics-panel-heading"><div><span class="analytics-panel-label">Best performers</span><h2>Top products</h2></div><span class="analytics-panel-mark">UNITS</span></div>
+    <div class="analytics-chart"><canvas id="products-chart"></canvas></div>
+  </div>
+  <div class="module analytics-module analytics-stock-panel">
+    <div class="analytics-panel-heading"><div><span class="analytics-panel-label">Inventory watch</span><h2>Low stock alerts</h2></div><span class="analytics-alert-dot"></span></div>
+    {% if low_stock %}<div class="analytics-low-stock" role="list">{% for product in low_stock %}<div class="analytics-stock-row" role="listitem"><span>{{ product.name }}</span><strong>{{ product.stock }} left</strong></div>{% endfor %}</div>{% else %}<p class="analytics-empty">Everything is well stocked.</p>{% endif %}
+  </div>
+  <div class="module analytics-module analytics-reports-panel">
+    <div class="analytics-panel-heading"><div><span class="analytics-panel-label">Data center</span><h2>Export reports</h2></div></div>
+    <div class="analytics-reports">
+    <a class="button" href="{% url 'adminapp-export' 'orders' 'csv' %}">Orders CSV</a>
+    <a class="button" href="{% url 'adminapp-export' 'orders' 'pdf' %}">Orders PDF</a>
+    <a class="button" href="{% url 'adminapp-export' 'sales' 'csv' %}">Sales CSV</a>
+    <a class="button" href="{% url 'adminapp-export' 'sales' 'pdf' %}">Sales PDF</a>
+    <a class="button" href="{% url 'adminapp-export' 'users' 'csv' %}">Users CSV</a>
+    <a class="button" href="{% url 'adminapp-export' 'users' 'pdf' %}">Users PDF</a>
+    </div>
+  </div>
+  </div>
+</div>
+<script id="revenue-labels" type="application/json">{{ revenue_labels|safe }}</script>
+<script id="revenue-values" type="application/json">{{ revenue_values|safe }}</script>
+<script id="product-labels" type="application/json">{{ top_product_labels|safe }}</script>
+<script id="product-values" type="application/json">{{ top_product_values|safe }}</script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+const readAnalyticsData = (id) => JSON.parse(document.getElementById(id).textContent);
+new Chart(document.getElementById("revenue-chart"), {
+  type: "line",
+  data: {
+    labels: readAnalyticsData("revenue-labels"),
+    datasets: [{ label: "Revenue", data: readAnalyticsData("revenue-values"), borderColor: "#2563eb", backgroundColor: "rgba(37, 99, 235, 0.15)", fill: true, tension: 0.25 }],
+  },
+  options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } } },
+});
+new Chart(document.getElementById("products-chart"), {
+  type: "bar",
+  data: {
+    labels: readAnalyticsData("product-labels"),
+    datasets: [{ label: "Units sold", data: readAnalyticsData("product-values"), backgroundColor: "#16a34a" }],
+  },
+  options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } } },
+});
+</script>
+{% endblock %}

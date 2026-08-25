@@ -91,6 +91,10 @@ export default function Products() {
 
     } catch (error) {
 
+      if (error.response?.status === 404) {
+        await loadProducts();
+      }
+
       alert(
         error.response?.data?.detail ||
         "Unable to add product."

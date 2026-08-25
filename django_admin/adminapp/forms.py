@@ -1,7 +1,9 @@
 from django import forms
 from passlib.context import CryptContext
 
-from .models import StoreUser
+from django.utils import timezone
+
+from .models import Order, Payment, Product, StoreUser
 
 
 password_context = CryptContext(schemes=["pbkdf2_sha256"], deprecated="auto")
@@ -17,7 +19,7 @@ class StoreUserForm(forms.ModelForm):
 
     class Meta:
         model = StoreUser
-        fields = ("email", "password")
+        fields = ("email", "password", "role", "is_active")
 
     def save(self, commit=True):
         user = super().save(commit=False)
@@ -27,3 +29,25 @@ class StoreUserForm(forms.ModelForm):
         if commit:
             user.save(using=self._meta.model._default_manager.db)
         return user
+
+
+class ProductAdminForm(forms.ModelForm):
+    image_upload = forms.ImageField(required=False, label="Upload product image")
+
+    class Meta:
+        model = Product
+        fields = "__all__"
+
+
+class OrderAdminForm(forms.ModelForm):
+    class Meta:
+        model = Order
+        fields = ("user", "total", "payment_status", "order_status")
+
+
+class PaymentAdminForm(forms.ModelForm):
+    timestamp = forms.DateTimeField(initial=timezone.now)
+
+    class Meta:
+        model = Payment
+        fields = ("order", "amount", "payment_method", "transaction_id", "status", "timestamp")

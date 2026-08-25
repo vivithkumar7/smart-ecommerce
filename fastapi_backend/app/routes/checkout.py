@@ -1,15 +1,18 @@
 import os
 
 import stripe
-from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi import APIRouter, BackgroundTasks, Depends, Header, HTTPException, Request
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
 from app.dependencies.auth import get_current_user
 from app.models.cart import Cart
 from app.models.order import Order, OrderItem
+from app.models.order import ORDER_STATUSES
 from app.models.payment import Payment
 from app.schemas.order import CheckoutResponse, OrderResponse
+from app.schemas.order_status import OrderStatusUpdateRequest
+from app.services.notifications import create_notification
 
 
 router = APIRouter(tags=["Checkout"])
@@ -17,12 +20,14 @@ router = APIRouter(tags=["Checkout"])
 TAX_RATE = float(os.getenv("TAX_RATE", "0.18"))
 CURRENCY = os.getenv("STRIPE_CURRENCY", "usd").lower()
 CHECKOUT_MODE = os.getenv("CHECKOUT_MODE", "stripe").lower()
+ORDER_STATUS_ADMIN_KEY = os.getenv("ORDER_STATUS_ADMIN_KEY", "").strip()
 
 
 @router.post("/checkout", response_model=CheckoutResponse)
-def checkout(
+async def checkout(
     db: Session = Depends(get_db),
     current_user=Depends(get_current_user),
+    background_tasks: BackgroundTasks = None,
 ):
     cart = db.query(Cart).filter(Cart.user_id == current_user.id).first()
     if not cart or not cart.items:
@@ -76,6 +81,15 @@ def checkout(
         for item in list(cart.items):
             db.delete(item)
         db.commit()
+        create_notification(
+            db,
+            current_user,
+            "order_confirmed",
+            f"Order #{order.id} was confirmed. Payment was successful.",
+            order_id=order.id,
+            event_key=f"order:{order.id}:confirmed",
+            background_tasks=background_tasks,
+        )
         return CheckoutResponse(
             order_id=order.id,
             amount=total,
@@ -169,8 +183,45 @@ def get_order(
     return order
 
 
+@router.patch("/orders/{order_id}/status")
+async def update_order_status(
+    order_id: int,
+    request: OrderStatusUpdateRequest,
+    x_admin_key: str | None = Header(default=None),
+    db: Session = Depends(get_db),
+    background_tasks: BackgroundTasks = None,
+):
+    if not ORDER_STATUS_ADMIN_KEY or x_admin_key != ORDER_STATUS_ADMIN_KEY:
+        raise HTTPException(status_code=401, detail="Valid order status admin key is required")
+    if request.order_status not in ORDER_STATUSES:
+        raise HTTPException(status_code=400, detail="Invalid order status")
+
+    order = db.query(Order).filter(Order.id == order_id).first()
+    if not order:
+        raise HTTPException(status_code=404, detail="Order not found")
+    if order.order_status == request.order_status:
+        return {"order_id": order.id, "order_status": order.order_status}
+
+    order.order_status = request.order_status
+    db.commit()
+    create_notification(
+        db,
+        order.user,
+        "order_status_updated",
+        f"Order #{order.id} is now {request.order_status}.",
+        order_id=order.id,
+        event_key=f"order:{order.id}:status:{request.order_status}",
+        background_tasks=background_tasks,
+    )
+    return {"order_id": order.id, "order_status": order.order_status}
+
+
 @router.post("/stripe/webhook")
-async def stripe_webhook(request: Request, db: Session = Depends(get_db)):
+async def stripe_webhook(
+    request: Request,
+    db: Session = Depends(get_db),
+    background_tasks: BackgroundTasks = None,
+):
     webhook_secret = os.getenv("STRIPE_WEBHOOK_SECRET", "").strip()
     if CHECKOUT_MODE == "mock":
         return {"received": True, "mode": "mock"}
@@ -214,5 +265,19 @@ async def stripe_webhook(request: Request, db: Session = Depends(get_db)):
         if succeeded:
             order.order_status = "paid"
         db.commit()
+        create_notification(
+            db,
+            order.user,
+            "payment_success" if succeeded else "payment_failure",
+            (
+                f"Payment for order #{order.id} was successful."
+                if succeeded
+                else f"Payment for order #{order.id} failed. Please try again."
+            ),
+            order_id=order.id,
+            event_key=f"order:{order.id}:payment:{'success' if succeeded else 'failure'}",
+            event_name="order_status_updated" if succeeded else None,
+            background_tasks=background_tasks,
+        )
 
     return {"received": True}

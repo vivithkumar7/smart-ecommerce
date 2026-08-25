@@ -1,5 +1,6 @@
 .navbar {
-  background: #111827;
+  background: var(--ink);
+  box-shadow: 0 4px 18px rgba(20, 33, 61, 0.14);
   color: white;
   position: sticky;
   top: 0;
@@ -9,7 +10,7 @@
 .navbar-container {
   max-width: 1400px;
   margin: auto;
-  padding: 16px 30px;
+  padding: 18px 30px;
 
   display: flex;
   justify-content: space-between;
@@ -17,10 +18,21 @@
 }
 
 .navbar-logo {
+  align-items: center;
   color: white;
+  display: flex;
   text-decoration: none;
-  font-size: 24px;
+  font-family: "Space Grotesk", "Trebuchet MS", sans-serif;
+  font-size: 25px;
   font-weight: 800;
+}
+
+.navbar-logo::before {
+  background: var(--amber);
+  content: "";
+  height: 9px;
+  margin-right: 9px;
+  width: 9px;
 }
 
 .navbar-links {
@@ -36,7 +48,7 @@
 }
 
 .navbar-links a:hover {
-  color: #60a5fa;
+  color: #91b7ff;
 }
 
 .cart-count {
@@ -60,13 +72,13 @@
 .logout-button {
   border: none;
 
-  background: #dc2626;
+  background: #f04444;
 
   color: white;
 
   padding: 8px 14px;
 
-  border-radius: 7px;
+  border-radius: 5px;
 
   font-weight: 600;
 
@@ -75,5 +87,97 @@
 
 
 .logout-button:hover {
-  background: #b91c1c;
+  background: #ff6868;
+}
+
+.notification-menu {
+  position: relative;
+}
+
+.notification-button {
+  border: 0;
+  background: transparent;
+  color: white;
+  cursor: pointer;
+  font: inherit;
+  font-weight: 600;
+  padding: 6px 0;
+}
+
+.notification-count {
+  background: var(--amber);
+  border-radius: 50%;
+  display: inline-flex;
+  font-size: 11px;
+  height: 20px;
+  justify-content: center;
+  margin-left: 5px;
+  min-width: 20px;
+  align-items: center;
+}
+
+.notification-panel {
+  background: white;
+  border: 1px solid #d1d5db;
+  color: #111827;
+  display: none;
+  box-shadow: var(--shadow);
+  min-width: 300px;
+  position: absolute;
+  right: 0;
+  top: 38px;
+  z-index: 110;
+}
+
+.notification-menu:hover .notification-panel,
+.notification-menu:focus-within .notification-panel {
+  display: block;
+}
+
+.notification-panel p {
+  margin: 0;
+  padding: 16px;
+}
+
+.notification-item {
+  background: white;
+  border: 0;
+  border-bottom: 1px solid #e5e7eb;
+  color: #111827;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 12px 14px;
+  text-align: left;
+  width: 100%;
+}
+
+.notification-item span {
+  color: #4b5563;
+  font-size: 13px;
+}
+
+.notification-item.is-read {
+  opacity: 0.65;
+}
+
+@media (max-width: 700px) {
+  .navbar-container {
+    padding: 14px 16px;
+  }
+
+  .navbar-links {
+    gap: 12px;
+  }
+
+  .notification-panel {
+    position: fixed;
+    right: 12px;
+    top: 58px;
+  }
+}
+
+.notification-item:hover {
+  background: #f4f7ff;
 }

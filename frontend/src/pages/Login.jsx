@@ -2,7 +2,7 @@ import { useState } from "react";
 
 import { useNavigate } from "react-router-dom";
 
-import { loginUser } from "../api/authApi";
+import { loginUser, signupUser } from "../api/authApi";
 
 import "../styles/login.css";
 
@@ -17,6 +17,9 @@ export default function Login() {
 
   const [password, setPassword] =
     useState("");
+
+  const [isRegistering, setIsRegistering] =
+    useState(false);
 
   const [loading, setLoading] =
     useState(false);
@@ -36,10 +39,9 @@ export default function Login() {
 
     try {
 
-      const data = await loginUser(
-        email,
-        password
-      );
+      const data = isRegistering
+        ? await signupUser(email, password)
+        : await loginUser(email, password);
 
 
       console.log(
@@ -68,6 +70,15 @@ export default function Login() {
         data.token_type || "bearer"
       );
 
+
+      if (isRegistering) {
+        const loginData = await loginUser(email, password);
+        localStorage.setItem("access_token", loginData.access_token);
+        localStorage.setItem("token_type", loginData.token_type || "bearer");
+      } else {
+        localStorage.setItem("access_token", data.access_token);
+        localStorage.setItem("token_type", data.token_type || "bearer");
+      }
 
       navigate("/");
 
@@ -105,7 +116,7 @@ export default function Login() {
           </h1>
 
           <p>
-            Login to your account
+            {isRegistering ? "Create your account" : "Login to your account"}
           </p>
 
         </div>
@@ -170,12 +181,26 @@ export default function Login() {
           >
 
             {loading
-              ? "Logging in..."
-              : "Login"}
+              ? (isRegistering ? "Creating account..." : "Logging in...")
+              : (isRegistering ? "Register" : "Login")}
 
           </button>
 
         </form>
+
+        <p className="login-signup">
+          {isRegistering ? "Already have an account?" : "Don't have an account?"}
+          <button
+            className="login-signup-button"
+            onClick={() => {
+              setIsRegistering((current) => !current);
+              setError("");
+            }}
+            type="button"
+          >
+            {isRegistering ? "Login" : "Register"}
+          </button>
+        </p>
 
       </div>
 

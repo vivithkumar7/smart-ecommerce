@@ -28,8 +28,14 @@ import Checkout
 import Login
   from "./pages/Login";
 
+import Notifications
+  from "./pages/Notifications";
+
 import { getCart }
   from "./api/cartApi";
+
+import { getNotifications }
+  from "./api/notificationApi";
 
 
 function AppContent() {
@@ -38,6 +44,9 @@ function AppContent() {
 
   const [cartCount, setCartCount] =
     useState(0);
+
+  const [notifications, setNotifications] =
+    useState([]);
 
 
   const loadCartCount =
@@ -88,6 +97,33 @@ function AppContent() {
 
     loadCartCount();
 
+    const token = localStorage.getItem("access_token");
+    if (!token) {
+      setNotifications([]);
+      return undefined;
+    }
+
+    getNotifications()
+      .then(setNotifications)
+      .catch(() => setNotifications([]));
+
+    const socketUrl = `ws://127.0.0.1:8000/notifications/ws?token=${encodeURIComponent(token)}`;
+    const socket = new WebSocket(socketUrl);
+    socket.onmessage = (event) => {
+      const data = JSON.parse(event.data);
+      if (data.event === "cart_updated") {
+        loadCartCount();
+      }
+      if (data.notification) {
+        setNotifications((current) => [
+          data.notification,
+          ...current.filter((item) => item.id !== data.notification.id),
+        ]);
+      }
+    };
+
+    return () => socket.close();
+
   }, [location.pathname]);
 
 
@@ -95,6 +131,8 @@ function AppContent() {
     <>
       <Navbar
         cartCount={cartCount}
+        notifications={notifications}
+        setNotifications={setNotifications}
       />
 
 
@@ -140,6 +178,18 @@ function AppContent() {
           element={
             <ProtectedRoute>
               <Checkout />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/notifications"
+          element={
+            <ProtectedRoute>
+              <Notifications
+                notifications={notifications}
+                setNotifications={setNotifications}
+              />
             </ProtectedRoute>
           }
         />

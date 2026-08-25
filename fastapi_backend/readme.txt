@@ -56,6 +56,12 @@ Create a file named `.env` inside `fastapi_backend` with these values:
   STRIPE_CANCEL_URL=http://localhost:5173/checkout?cancelled=true
   STRIPE_WEBHOOK_SECRET=whsec_replace-me
   TAX_RATE=0.18
+  SMTP_HOST=smtp.example.com
+  SMTP_PORT=587
+  SMTP_USERNAME=your-smtp-user
+  SMTP_PASSWORD=your-smtp-password
+  SMTP_FROM=notifications@example.com
+  SMTP_USE_TLS=true
 
 `SECRET_KEY` should be a long random value. Never commit `.env` or real Stripe
 keys to source control. Mock checkout is recommended for initial local testing.
@@ -168,6 +174,35 @@ When CHECKOUT_MODE=mock, the webhook returns 200 with mode=mock for local
 frontend testing and does not process Stripe events. For real Stripe payments,
 set CHECKOUT_MODE=stripe and replace STRIPE_WEBHOOK_SECRET with the signing
 secret from Stripe Dashboard or Stripe CLI.
+
+Notifications
+-------------
+GET /notifications returns the authenticated user's newest notifications.
+POST /notifications/read marks the authenticated user's notifications as read.
+Send an optional list of IDs to mark selected notifications, or use null to
+mark all of the user's notifications:
+
+  {"notification_ids": [1, 2]}
+
+Real-time notifications are delivered over:
+
+  ws://127.0.0.1:8000/notifications/ws?token=<access_token>
+
+The WebSocket sends order confirmation and payment success/failure events as
+they are committed. SMTP delivery is enabled when SMTP_HOST and SMTP_FROM are
+configured; otherwise the application continues without sending email. Email
+delivery currently runs in FastAPI background tasks and should be moved to a
+durable queue for production retry guarantees.
+
+For shipping and delivery updates, configure ORDER_STATUS_ADMIN_KEY and call:
+
+  PATCH /orders/{order_id}/status
+  X-Admin-Key: <ORDER_STATUS_ADMIN_KEY>
+  {"order_status": "shipped"}
+
+Allowed statuses are pending, paid, shipped, delivered, and cancelled. The
+endpoint creates an order_status_updated notification and sends its email only
+after the status change is committed.
 
 API docs are available at /docs and /redoc.
 

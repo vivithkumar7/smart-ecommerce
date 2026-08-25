@@ -22,6 +22,7 @@ from app.schemas.cart import (
 )
 
 from app.dependencies.auth import get_current_user
+from app.services.notifications import manager
 
 
 router = APIRouter(
@@ -135,7 +136,7 @@ def calculate_cart(cart):
     "/add",
     response_model=CartResponse
 )
-def add_to_cart(
+async def add_to_cart(
 
     request: CartAddRequest,
 
@@ -225,6 +226,7 @@ def add_to_cart(
 
     db.commit()
     db.refresh(cart)
+    await manager.publish(current_user.id, {"event": "cart_updated"})
 
     return calculate_cart(cart)
 
@@ -237,7 +239,7 @@ def add_to_cart(
     "/update",
     response_model=CartResponse
 )
-def update_cart(
+async def update_cart(
 
     request: CartUpdateRequest,
 
@@ -323,6 +325,7 @@ def update_cart(
 
     db.commit()
     db.refresh(cart)
+    await manager.publish(current_user.id, {"event": "cart_updated"})
 
     return calculate_cart(cart)
 
@@ -335,7 +338,7 @@ def update_cart(
     "/remove",
     response_model=CartResponse
 )
-def remove_from_cart(
+async def remove_from_cart(
 
     request: CartRemoveRequest,
 
@@ -382,6 +385,7 @@ def remove_from_cart(
 
     db.commit()
     db.refresh(cart)
+    await manager.publish(current_user.id, {"event": "cart_updated"})
 
     return calculate_cart(cart)
 
