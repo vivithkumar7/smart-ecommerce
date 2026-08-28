@@ -18,18 +18,26 @@ from .models import Order, Product, StoreUser
 def analytics_dashboard(request):
     today = timezone.now().date()
     start_date = today - timedelta(days=29)
-    sales = list(Order.objects.filter(payment_status="paid").values_list("total", flat=True))
+    sales = [
+        float(total)
+        for total in Order.objects.filter(payment_status="paid").values_list("total", flat=True)
+    ]
     revenue_by_day = {}
     for order in Order.objects.filter(payment_status="paid", created_at__date__gte=start_date):
         key = order.created_at.date().isoformat()
-        revenue_by_day[key] = round(revenue_by_day.get(key, 0) + order.total, 2)
+        revenue_by_day[key] = round(
+            revenue_by_day.get(key, 0) + float(order.total),
+            2,
+        )
 
     top_products = []
     with connection.cursor() as cursor:
         cursor.execute(
-            "SELECT product_name, SUM(quantity) AS units "
-            "FROM order_items oi JOIN orders o ON o.id = oi.order_id "
-            "WHERE o.payment_status = 'paid' GROUP BY product_name "
+            "SELECT p.name, SUM(oi.quantity) AS units "
+            "FROM order_items oi "
+            "JOIN orders o ON o.id = oi.order_id "
+            "JOIN products p ON p.id = oi.product_id "
+            "WHERE o.payment_status = 'paid' GROUP BY p.name "
             "ORDER BY units DESC LIMIT 5"
         )
         top_products = [{"name": row[0], "units": int(row[1])} for row in cursor.fetchall()]

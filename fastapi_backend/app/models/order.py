@@ -33,9 +33,17 @@ class OrderItem(Base):
     id = Column(Integer, primary_key=True, index=True)
     order_id = Column(Integer, ForeignKey("orders.id"), nullable=False, index=True)
     product_id = Column(Integer, ForeignKey("products.id"), nullable=False)
-    product_name = Column(String(255), nullable=False)
     quantity = Column(Integer, nullable=False)
-    unit_price = Column(Float, nullable=False)
+    price = Column(Float, nullable=False)
+    subtotal = Column(Float, nullable=False)
 
     order = relationship("Order", back_populates="items")
     product = relationship("Product")
+
+    @property
+    def product_name(self):
+        return self.product.name
+
+    @property
+    def unit_price(self):
+        return self.price

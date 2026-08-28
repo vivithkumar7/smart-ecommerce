@@ -51,9 +51,9 @@ async def checkout(
         db.add(OrderItem(
             order_id=order.id,
             product_id=item.product_id,
-            product_name=item.product.name,
             quantity=item.quantity,
-            unit_price=item.unit_price,
+            price=item.unit_price,
+            subtotal=round(item.unit_price * item.quantity, 2),
         ))
         line_items.append({
             "price_data": {
