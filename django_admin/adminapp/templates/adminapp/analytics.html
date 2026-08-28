@@ -19,6 +19,7 @@
     <div class="module analytics-card analytics-card-sales"><span class="analytics-card-label">Paid orders</span><strong>{{ total_sales }}</strong><small>Completed sales</small></div>
     <div class="module analytics-card analytics-card-revenue"><span class="analytics-card-label">Total revenue</span><strong>{{ total_revenue }}</strong><small>Across all paid orders</small></div>
     <div class="module analytics-card analytics-card-users"><span class="analytics-card-label">Customers</span><strong>{{ total_users }}</strong><small>Registered accounts</small></div>
+    <div class="module analytics-card analytics-card-failed"><span class="analytics-card-label">Failed payments</span><strong>{{ failed_payments }}</strong><small>Orders needing attention</small></div>
   </div>
   <div class="analytics-grid">
   <div class="module analytics-module analytics-revenue-panel">
@@ -28,6 +29,14 @@
   <div class="module analytics-module analytics-products-panel">
     <div class="analytics-panel-heading"><div><span class="analytics-panel-label">Best performers</span><h2>Top products</h2></div><span class="analytics-panel-mark">UNITS</span></div>
     <div class="analytics-chart"><canvas id="products-chart"></canvas></div>
+  </div>
+  <div class="module analytics-module analytics-payments-panel">
+    <div class="analytics-panel-heading"><div><span class="analytics-panel-label">Payment health</span><h2>Paid vs failed</h2></div><span class="analytics-panel-mark">ORDERS</span></div>
+    <div class="analytics-chart"><canvas id="payments-chart"></canvas></div>
+  </div>
+  <div class="module analytics-module analytics-payment-circle-panel">
+    <div class="analytics-panel-heading"><div><span class="analytics-panel-label">Payment mix</span><h2>Payment status</h2></div></div>
+    <div class="analytics-circle-chart"><canvas id="payment-circle-chart"></canvas></div>
   </div>
   <div class="module analytics-module analytics-stock-panel">
     <div class="analytics-panel-heading"><div><span class="analytics-panel-label">Inventory watch</span><h2>Low stock alerts</h2></div><span class="analytics-alert-dot"></span></div>
@@ -50,6 +59,8 @@
 <script id="revenue-values" type="application/json">{{ revenue_values|safe }}</script>
 <script id="product-labels" type="application/json">{{ top_product_labels|safe }}</script>
 <script id="product-values" type="application/json">{{ top_product_values|safe }}</script>
+<script id="payment-labels" type="application/json">{{ payment_labels|safe }}</script>
+<script id="payment-values" type="application/json">{{ payment_values|safe }}</script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
 const readAnalyticsData = (id) => JSON.parse(document.getElementById(id).textContent);
@@ -68,6 +79,20 @@ new Chart(document.getElementById("products-chart"), {
     datasets: [{ label: "Units sold", data: readAnalyticsData("product-values"), backgroundColor: "#16a34a" }],
   },
   options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } } },
+});
+const paymentData = {
+  labels: readAnalyticsData("payment-labels"),
+  datasets: [{ label: "Orders", data: readAnalyticsData("payment-values"), backgroundColor: ["#16845b", "#ef5350"] }],
+};
+new Chart(document.getElementById("payments-chart"), {
+  type: "bar",
+  data: paymentData,
+  options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, ticks: { precision: 0 } } } },
+});
+new Chart(document.getElementById("payment-circle-chart"), {
+  type: "doughnut",
+  data: paymentData,
+  options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: "bottom" } } },
 });
 </script>
 {% endblock %}

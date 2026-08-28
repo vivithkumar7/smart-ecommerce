@@ -5,6 +5,7 @@ from datetime import timedelta
 
 from django.contrib.admin.views.decorators import staff_member_required
 from django.db import connection
+from django.db.models import Count
 from django.http import HttpResponse
 from django.shortcuts import render
 from django.utils import timezone
@@ -42,15 +43,26 @@ def analytics_dashboard(request):
         )
         top_products = [{"name": row[0], "units": int(row[1])} for row in cursor.fetchall()]
 
+    payment_status_counts = {
+        row["payment_status"]: row["count"]
+        for row in Order.objects.values("payment_status").annotate(count=Count("id"))
+    }
+
     context = {
         "total_sales": len(sales),
         "total_revenue": round(sum(sales), 2),
         "total_users": StoreUser.objects.count(),
+        "failed_payments": payment_status_counts.get("failed", 0),
         "low_stock": list(Product.objects.filter(stock__lte=5, is_active=True).order_by("stock", "name")),
         "revenue_labels": json.dumps(sorted(revenue_by_day)),
         "revenue_values": json.dumps([revenue_by_day[key] for key in sorted(revenue_by_day)]),
         "top_product_labels": json.dumps([item["name"] for item in top_products]),
         "top_product_values": json.dumps([item["units"] for item in top_products]),
+        "payment_labels": json.dumps(["Paid", "Failed"]),
+        "payment_values": json.dumps([
+            payment_status_counts.get("paid", 0),
+            payment_status_counts.get("failed", 0),
+        ]),
     }
     return render(request, "adminapp/analytics.html", context)
 

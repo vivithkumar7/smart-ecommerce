@@ -76,6 +76,10 @@
   border-top-color: #16845b;
 }
 
+.analytics-card-failed {
+  border-top-color: #ef5350;
+}
+
 .analytics-card-label,
 .analytics-card small {
   color: var(--dash-muted);
@@ -135,6 +139,16 @@
 
 .analytics-products-panel .analytics-chart {
   height: 270px;
+}
+
+.analytics-payments-panel .analytics-chart,
+.analytics-payment-circle-panel .analytics-circle-chart {
+  height: 270px;
+}
+
+.analytics-payment-circle-panel .analytics-circle-chart {
+  max-width: 360px;
+  margin: 0 auto;
 }
 
 .analytics-stock-panel {
