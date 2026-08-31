@@ -351,6 +351,99 @@ async def update_order_status(
     return {"order_id": order.id, "order_status": order.order_status}
 
 
+@router.get("/return-requests", response_model=list[ReturnRequestResponse])
+async def list_return_requests(
+    status: str | None = None,
+    x_admin_key: str | None = Header(default=None),
+    db: Session = Depends(get_db),
+):
+    """List all return requests (admin only)"""
+    if not ORDER_STATUS_ADMIN_KEY or x_admin_key != ORDER_STATUS_ADMIN_KEY:
+        raise HTTPException(status_code=401, detail="Admin authorization required")
+
+    query = db.query(ReturnRequest)
+    if status and status in ("pending", "approved", "rejected"):
+        query = query.filter(ReturnRequest.status == status)
+
+    return query.order_by(ReturnRequest.created_at.desc()).all()
+
+
+@router.get("/return-requests/{return_id}", response_model=ReturnRequestResponse)
+async def get_return_request(
+    return_id: int,
+    x_admin_key: str | None = Header(default=None),
+    db: Session = Depends(get_db),
+):
+    """Get a specific return request (admin only)"""
+    if not ORDER_STATUS_ADMIN_KEY or x_admin_key != ORDER_STATUS_ADMIN_KEY:
+        raise HTTPException(status_code=401, detail="Admin authorization required")
+
+    return_request = db.query(ReturnRequest).filter(ReturnRequest.id == return_id).first()
+    if not return_request:
+        raise HTTPException(status_code=404, detail="Return request not found")
+
+    return return_request
+
+
+@router.patch("/return-requests/{return_id}")
+async def approve_reject_return(
+    return_id: int,
+    request_body: dict,
+    x_admin_key: str | None = Header(default=None),
+    db: Session = Depends(get_db),
+    background_tasks: BackgroundTasks = None,
+):
+    """Approve or reject a return request (admin only)"""
+    if not ORDER_STATUS_ADMIN_KEY or x_admin_key != ORDER_STATUS_ADMIN_KEY:
+        raise HTTPException(status_code=401, detail="Admin authorization required")
+
+    new_status = request_body.get("status", "").lower()
+    if new_status not in ("approved", "rejected"):
+        raise HTTPException(status_code=400, detail="Status must be 'approved' or 'rejected'")
+
+    return_request = db.query(ReturnRequest).filter(ReturnRequest.id == return_id).first()
+    if not return_request:
+        raise HTTPException(status_code=404, detail="Return request not found")
+
+    if return_request.status != "pending":
+        raise HTTPException(status_code=400, detail="Only pending return requests can be approved or rejected")
+
+    return_request.status = new_status
+    order = return_request.order
+
+    if new_status == "approved":
+        order.order_status = "return approved"
+        notification_type = "return_approved"
+        notification_message = f"Return for order #{order.id} has been approved. Please ship the items back to us."
+    else:
+        order.order_status = "return rejected"
+        notification_type = "return_rejected"
+        notification_message = f"Return for order #{order.id} has been rejected. Please contact support if you have questions."
+
+    db.commit()
+    db.refresh(return_request)
+
+    create_notification(
+        db,
+        order.user,
+        notification_type,
+        notification_message,
+        order_id=order.id,
+        event_key=f"order:{order.id}:return:{new_status}",
+        background_tasks=background_tasks,
+    )
+
+    return {
+        "id": return_request.id,
+        "order_id": return_request.order_id,
+        "user_id": return_request.user_id,
+        "reason": return_request.reason,
+        "comment": return_request.comment,
+        "status": return_request.status,
+        "created_at": return_request.created_at,
+    }
+
+
 @router.post("/stripe/webhook")
 async def stripe_webhook(
     request: Request,

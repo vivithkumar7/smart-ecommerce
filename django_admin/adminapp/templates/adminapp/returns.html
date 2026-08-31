@@ -1,0 +1,190 @@
+{% extends "admin/base_site.html" %}
+{% load static %}
+
+{% block title %}Returns Management | Admin{% endblock %}
+
+{% block extrastyle %}
+<link rel="stylesheet" href="{% static 'adminapp/returns.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="returns-container">
+  <div class="returns-header">
+    <h1>Returns Management</h1>
+    <p>Review and manage customer return requests</p>
+  </div>
+
+  {% if error %}
+  <div class="error-message">
+    <strong>Error:</strong> {{ error }}
+  </div>
+  {% endif %}
+
+  <div class="returns-stats">
+    <div class="stat-card pending">
+      <div class="stat-label">Pending</div>
+      <div class="stat-value">{{ pending_count }}</div>
+    </div>
+    <div class="stat-card approved">
+      <div class="stat-label">Approved</div>
+      <div class="stat-value">{{ approved_count }}</div>
+    </div>
+    <div class="stat-card rejected">
+      <div class="stat-label">Rejected</div>
+      <div class="stat-value">{{ rejected_count }}</div>
+    </div>
+  </div>
+
+  <div class="returns-content">
+    <!-- Pending Returns -->
+    <section class="returns-section">
+      <h2>Pending Return Requests ({{ pending_count }})</h2>
+      {% if pending_requests %}
+      <div class="returns-list">
+        {% for return_req in pending_requests %}
+        <div class="return-card pending">
+          <div class="return-header">
+            <div>
+              <h3>Return #{{ return_req.id }} - Order #{{ return_req.order_id }}</h3>
+              <p class="return-user">User ID: {{ return_req.user_id }}</p>
+            </div>
+            <div class="return-date">
+              <small>{{ return_req.created_at|date:"M d, Y H:i" }}</small>
+            </div>
+          </div>
+          
+          <div class="return-body">
+            <div class="reason-section">
+              <strong>Reason:</strong>
+              <p>{{ return_req.reason }}</p>
+            </div>
+            {% if return_req.comment %}
+            <div class="comment-section">
+              <strong>Customer Comment:</strong>
+              <p>{{ return_req.comment }}</p>
+            </div>
+            {% endif %}
+          </div>
+
+          <div class="return-actions">
+            <button class="btn-approve" onclick="updateReturnStatus({{ return_req.id }}, 'approved')">
+              ✓ Approve
+            </button>
+            <button class="btn-reject" onclick="updateReturnStatus({{ return_req.id }}, 'rejected')">
+              ✕ Reject
+            </button>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+      {% else %}
+      <p class="empty-message">No pending return requests</p>
+      {% endif %}
+    </section>
+
+    <!-- Approved Returns -->
+    <section class="returns-section">
+      <h2>Approved Returns ({{ approved_count }})</h2>
+      {% if approved_requests %}
+      <div class="returns-list">
+        {% for return_req in approved_requests %}
+        <div class="return-card approved">
+          <div class="return-header">
+            <div>
+              <h3>Return #{{ return_req.id }} - Order #{{ return_req.order_id }}</h3>
+              <p class="return-user">User ID: {{ return_req.user_id }}</p>
+            </div>
+            <div class="return-badge">Approved</div>
+          </div>
+          
+          <div class="return-body">
+            <div class="reason-section">
+              <strong>Reason:</strong>
+              <p>{{ return_req.reason }}</p>
+            </div>
+            {% if return_req.comment %}
+            <div class="comment-section">
+              <strong>Customer Comment:</strong>
+              <p>{{ return_req.comment }}</p>
+            </div>
+            {% endif %}
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+      {% else %}
+      <p class="empty-message">No approved returns</p>
+      {% endif %}
+    </section>
+
+    <!-- Rejected Returns -->
+    <section class="returns-section">
+      <h2>Rejected Returns ({{ rejected_count }})</h2>
+      {% if rejected_requests %}
+      <div class="returns-list">
+        {% for return_req in rejected_requests %}
+        <div class="return-card rejected">
+          <div class="return-header">
+            <div>
+              <h3>Return #{{ return_req.id }} - Order #{{ return_req.order_id }}</h3>
+              <p class="return-user">User ID: {{ return_req.user_id }}</p>
+            </div>
+            <div class="return-badge">Rejected</div>
+          </div>
+          
+          <div class="return-body">
+            <div class="reason-section">
+              <strong>Reason:</strong>
+              <p>{{ return_req.reason }}</p>
+            </div>
+            {% if return_req.comment %}
+            <div class="comment-section">
+              <strong>Customer Comment:</strong>
+              <p>{{ return_req.comment }}</p>
+            </div>
+            {% endif %}
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+      {% else %}
+      <p class="empty-message">No rejected returns</p>
+      {% endif %}
+    </section>
+  </div>
+</div>
+
+<script>
+function updateReturnStatus(returnId, newStatus) {
+  if (!confirm(`Are you sure you want to ${newStatus} this return?`)) {
+    return;
+  }
+
+  const data = {
+    return_id: returnId,
+    status: newStatus
+  };
+
+  fetch("{% url 'adminapp-update-return-status' %}", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "X-CSRFToken": "{{ csrf_token }}"
+    },
+    body: JSON.stringify(data)
+  })
+  .then(response => response.json())
+  .then(result => {
+    if (result.success) {
+      alert(result.message);
+      location.reload();
+    } else {
+      alert("Error: " + result.error);
+    }
+  })
+  .catch(error => {
+    alert("Error updating return: " + error);
+  });
+}
+</script>
+{% endblock %}

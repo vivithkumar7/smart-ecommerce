@@ -1,0 +1,277 @@
+.returns-container {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.returns-header {
+  margin-bottom: 30px;
+}
+
+.returns-header h1 {
+  font-size: 2.2rem;
+  margin: 0 0 8px;
+  color: #333;
+}
+
+.returns-header p {
+  color: #666;
+  margin: 0;
+  font-size: 1rem;
+}
+
+.error-message {
+  background: #fee;
+  border: 1px solid #fcc;
+  color: #c33;
+  padding: 12px 16px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+}
+
+.returns-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+  margin-bottom: 30px;
+}
+
+.stat-card {
+  padding: 20px;
+  border-radius: 12px;
+  text-align: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  background: white;
+  border-left: 4px solid #999;
+}
+
+.stat-card.pending {
+  border-left-color: #ffc107;
+}
+
+.stat-card.pending .stat-value {
+  color: #ffc107;
+}
+
+.stat-card.approved {
+  border-left-color: #28a745;
+}
+
+.stat-card.approved .stat-value {
+  color: #28a745;
+}
+
+.stat-card.rejected {
+  border-left-color: #dc3545;
+}
+
+.stat-card.rejected .stat-value {
+  color: #dc3545;
+}
+
+.stat-label {
+  color: #666;
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+
+.stat-value {
+  font-size: 2.2rem;
+  font-weight: 800;
+}
+
+.returns-content {
+  display: grid;
+  gap: 30px;
+}
+
+.returns-section {
+  background: white;
+  border-radius: 12px;
+  padding: 24px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.returns-section h2 {
+  margin: 0 0 20px;
+  font-size: 1.4rem;
+  color: #333;
+  border-bottom: 2px solid #f0f0f0;
+  padding-bottom: 12px;
+}
+
+.returns-list {
+  display: grid;
+  gap: 16px;
+}
+
+.return-card {
+  border: 1px solid #e0e0e0;
+  border-radius: 10px;
+  padding: 16px;
+  background: #fafafa;
+  border-left: 4px solid #999;
+  transition: all 0.2s ease;
+}
+
+.return-card:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  transform: translateY(-2px);
+}
+
+.return-card.pending {
+  border-left-color: #ffc107;
+  background: #fffbf0;
+}
+
+.return-card.approved {
+  border-left-color: #28a745;
+  background: #f0fff4;
+}
+
+.return-card.rejected {
+  border-left-color: #dc3545;
+  background: #fff0f3;
+}
+
+.return-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 16px;
+}
+
+.return-header h3 {
+  margin: 0 0 4px;
+  color: #333;
+  font-size: 1.1rem;
+}
+
+.return-user {
+  color: #999;
+  font-size: 0.85rem;
+  margin: 0;
+}
+
+.return-date {
+  text-align: right;
+}
+
+.return-date small {
+  color: #999;
+  font-size: 0.85rem;
+}
+
+.return-badge {
+  display: inline-block;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.return-card.approved .return-badge {
+  background: #d4edda;
+  color: #155724;
+}
+
+.return-card.rejected .return-badge {
+  background: #f8d7da;
+  color: #721c24;
+}
+
+.return-body {
+  margin-bottom: 16px;
+  padding: 12px 0;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.reason-section,
+.comment-section {
+  margin-bottom: 12px;
+}
+
+.reason-section:last-child,
+.comment-section:last-child {
+  margin-bottom: 0;
+}
+
+.return-body strong {
+  display: block;
+  color: #333;
+  font-size: 0.9rem;
+  margin-bottom: 6px;
+  text-transform: uppercase;
+}
+
+.return-body p {
+  margin: 0;
+  color: #555;
+  line-height: 1.5;
+}
+
+.return-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.btn-approve,
+.btn-reject {
+  flex: 1;
+  padding: 10px 16px;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-approve {
+  background: #28a745;
+  color: white;
+}
+
+.btn-approve:hover {
+  background: #218838;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(40, 167, 69, 0.3);
+}
+
+.btn-reject {
+  background: #dc3545;
+  color: white;
+}
+
+.btn-reject:hover {
+  background: #c82333;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(220, 53, 69, 0.3);
+}
+
+.empty-message {
+  text-align: center;
+  color: #999;
+  padding: 40px 20px;
+  font-style: italic;
+}
+
+@media (max-width: 768px) {
+  .returns-stats {
+    grid-template-columns: 1fr;
+  }
+
+  .return-header {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .return-date {
+    text-align: left;
+  }
+
+  .return-actions {
+    flex-direction: column;
+  }
+}
