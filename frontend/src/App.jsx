@@ -31,6 +31,9 @@ import Login
 import Notifications
   from "./pages/Notifications";
 
+import Orders
+  from "./pages/Orders";
+
 import { getCart }
   from "./api/cartApi";
 
@@ -178,6 +181,15 @@ function AppContent() {
           element={
             <ProtectedRoute>
               <Checkout />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/orders"
+          element={
+            <ProtectedRoute>
+              <Orders />
             </ProtectedRoute>
           }
         />

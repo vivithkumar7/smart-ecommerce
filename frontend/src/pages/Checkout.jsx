@@ -5,10 +5,19 @@ import { useSearchParams } from "react-router-dom";
 import { checkoutCart, getCart } from "../api/cartApi";
 
 const formatCurrency = (value) =>
-  new Intl.NumberFormat("en-US", {
+  new Intl.NumberFormat("en-IN", {
     style: "currency",
-    currency: "USD",
+    currency: "INR",
+    maximumFractionDigits: 2,
   }).format(value || 0);
+
+const paymentOptions = [
+  { id: "cod", label: "Cash on Delivery" },
+  { id: "card", label: "Card" },
+  { id: "credit-card", label: "Credit Card" },
+  { id: "gpay", label: "GPay" },
+  { id: "paytm", label: "Paytm" },
+];
 
 export default function Checkout() {
   const navigate = useNavigate();
@@ -16,6 +25,7 @@ export default function Checkout() {
   const [cart, setCart] = useState(null);
   const [cartLoading, setCartLoading] = useState(true);
   const [loading, setLoading] = useState(false);
+  const [selectedPayment, setSelectedPayment] = useState("card");
   const paymentSucceeded = searchParams.get("success") === "true";
   const paymentCancelled = searchParams.get("cancelled") === "true";
   const orderId = searchParams.get("order_id");
@@ -30,7 +40,13 @@ export default function Checkout() {
   const handleCheckout = async () => {
     try {
       setLoading(true);
-      const payment = await checkoutCart();
+      const payment = await checkoutCart(selectedPayment);
+
+      if (selectedPayment === "cod") {
+        navigate(`/checkout?success=true&order_id=${payment.order_id}`);
+        return;
+      }
+
       if (payment.checkout_url) {
         window.location.assign(payment.checkout_url);
         return;
@@ -105,7 +121,7 @@ export default function Checkout() {
                   </div>
                   <div className="invoice-totals">
                     <div><span>Subtotal</span><strong>{formatCurrency(cart.subtotal)}</strong></div>
-                    <div><span>Tax</span><strong>{formatCurrency(cart.tax)}</strong></div>
+                    <div><span>Tax (2%)</span><strong>{formatCurrency(cart.tax)}</strong></div>
                     <div className="invoice-grand-total"><span>Total due</span><strong>{formatCurrency(cart.grand_total)}</strong></div>
                   </div>
                 </>
@@ -116,17 +132,28 @@ export default function Checkout() {
 
             <aside className="payment-card">
               <div className="payment-card-topline">
-                <div className="payment-card-icon">$</div>
+                <div className="payment-card-icon">₹</div>
                 <span className="session-badge">Stripe session</span>
               </div>
               <span className="invoice-label">Ready when you are</span>
               <h2>Complete your payment</h2>
               <p>You will be redirected to Stripe's secure checkout to finish this order.</p>
               <div className="payment-methods" aria-label="Accepted payment methods">
-                <span>VISA</span>
-                <span>Mastercard</span>
-                <span>AMEX</span>
-                <span>Apple Pay</span>
+                {paymentOptions.map((method) => (
+                  <button
+                    key={method.id}
+                    type="button"
+                    className={`payment-option ${selectedPayment === method.id ? "selected" : ""}`}
+                    onClick={() => setSelectedPayment(method.id)}
+                  >
+                    {method.label}
+                  </button>
+                ))}
+              </div>
+
+              <div className="payment-amount">
+                <span>Selected method</span>
+                <strong>{paymentOptions.find((m) => m.id === selectedPayment)?.label}</strong>
               </div>
               <div className="payment-amount">
                 <span>Total due</span>
@@ -138,7 +165,11 @@ export default function Checkout() {
                 onClick={handleCheckout}
                 disabled={loading || cartLoading || !cart?.items?.length}
               >
-                {loading ? "Opening Stripe..." : "Continue to payment"}
+                {loading
+                  ? "Opening Stripe..."
+                  : selectedPayment === "cod"
+                    ? "Place order"
+                    : "Continue to payment"}
               </button>
               <div className="payment-steps">
                 <div><span>1</span><b>Review</b></div>

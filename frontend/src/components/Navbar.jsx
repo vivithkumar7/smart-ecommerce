@@ -94,6 +94,10 @@ export default function Navbar({
 
               </Link>
 
+              <Link to="/orders">
+                Orders
+              </Link>
+
               <div className="notification-menu">
                 <button className="notification-button" type="button">
                   Notifications

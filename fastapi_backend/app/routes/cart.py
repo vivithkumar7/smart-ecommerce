@@ -31,12 +31,19 @@ router = APIRouter(
 )
 
 
-TAX_RATE = float(
-    os.getenv(
-        "TAX_RATE",
-        "0.18"
-    )
-)
+def get_tax_rate():
+    try:
+        rate = float(os.getenv("TAX_RATE", "0.02"))
+    except (TypeError, ValueError):
+        rate = 0.02
+
+    if rate > 0.1:
+        rate = 0.02
+
+    return rate
+
+
+TAX_RATE = get_tax_rate()
 
 
 # =====================================================

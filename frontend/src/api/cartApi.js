@@ -47,8 +47,10 @@ export const removeFromCart = async (
 };
 
 
-export const checkoutCart = async () => {
-  const response = await api.post("/checkout");
+export const checkoutCart = async (paymentMethod = "card") => {
+  const response = await api.post("/checkout", {
+    payment_method: paymentMethod,
+  });
 
   return response.data;
 };

@@ -1,4 +1,5 @@
 import os
+from datetime import datetime, timedelta, timezone
 
 import stripe
 from fastapi import APIRouter, BackgroundTasks, Depends, Header, HTTPException, Request
@@ -10,25 +11,125 @@ from app.models.cart import Cart
 from app.models.order import Order, OrderItem
 from app.models.order import ORDER_STATUSES
 from app.models.payment import Payment
-from app.schemas.order import CheckoutResponse, OrderResponse
+from app.models.return_request import ReturnRequest
+from app.schemas.order import (
+    CheckoutRequest,
+    CheckoutResponse,
+    OrderResponse,
+    ReturnRequestCreate,
+    ReturnRequestResponse,
+)
 from app.schemas.order_status import OrderStatusUpdateRequest
 from app.services.notifications import create_notification
 
 
 router = APIRouter(tags=["Checkout"])
 
-TAX_RATE = float(os.getenv("TAX_RATE", "0.18"))
+
+def get_tax_rate():
+    try:
+        rate = float(os.getenv("TAX_RATE", "0.02"))
+    except (TypeError, ValueError):
+        rate = 0.02
+
+    if rate > 0.1:
+        rate = 0.02
+
+    return rate
+
+
+TAX_RATE = get_tax_rate()
 CURRENCY = os.getenv("STRIPE_CURRENCY", "usd").lower()
 CHECKOUT_MODE = os.getenv("CHECKOUT_MODE", "stripe").lower()
 ORDER_STATUS_ADMIN_KEY = os.getenv("ORDER_STATUS_ADMIN_KEY", "").strip()
+RETURN_WINDOW_DAYS = int(os.getenv("RETURN_WINDOW_DAYS", "7"))
+
+
+@router.get("/orders", response_model=list[OrderResponse])
+def list_orders(
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_user),
+):
+    orders = (
+        db.query(Order)
+        .filter(Order.user_id == current_user.id)
+        .order_by(Order.created_at.desc())
+        .all()
+    )
+    return orders
+
+
+@router.post("/orders/{order_id}/return", response_model=ReturnRequestResponse)
+def request_return(
+    order_id: int,
+    request: ReturnRequestCreate,
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_user),
+):
+    order = db.query(Order).filter(Order.id == order_id, Order.user_id == current_user.id).first()
+    if not order:
+        raise HTTPException(status_code=404, detail="Order not found")
+
+    if order.order_status.lower() != "delivered":
+        raise HTTPException(status_code=400, detail="Returns are only allowed for delivered orders")
+
+    if not request.reason or not request.reason.strip():
+        raise HTTPException(status_code=400, detail="Return reason is required")
+
+    if order.created_at is None:
+        raise HTTPException(status_code=400, detail="Order is missing a valid delivery date")
+
+    order_time = order.created_at
+    if order_time.tzinfo is None:
+        order_time = order_time.replace(tzinfo=timezone.utc)
+    else:
+        order_time = order_time.astimezone(timezone.utc)
+
+    return_deadline = order_time + timedelta(days=RETURN_WINDOW_DAYS)
+    if datetime.now(timezone.utc) > return_deadline:
+        raise HTTPException(status_code=400, detail=f"Return window expired. Returns must be requested within {RETURN_WINDOW_DAYS} days of delivery.")
+
+    existing_request = (
+        db.query(ReturnRequest)
+        .filter(ReturnRequest.order_id == order_id, ReturnRequest.user_id == current_user.id)
+        .first()
+    )
+    if existing_request:
+        raise HTTPException(status_code=400, detail="A return request already exists for this order")
+
+    return_request = ReturnRequest(
+        order_id=order.id,
+        user_id=current_user.id,
+        reason=request.reason.strip(),
+        comment=request.comment.strip() if request.comment and request.comment.strip() else None,
+        status="pending",
+    )
+    db.add(return_request)
+    order.order_status = "Return Requested"
+    db.commit()
+    db.refresh(return_request)
+    create_notification(
+        db,
+        current_user,
+        "return_requested",
+        f"Return requested for order #{order.id}. We will review it shortly.",
+        order_id=order.id,
+        event_key=f"order:{order.id}:return_requested",
+        background_tasks=None,
+    )
+    return return_request
 
 
 @router.post("/checkout", response_model=CheckoutResponse)
 async def checkout(
+    checkout_request: CheckoutRequest,
     db: Session = Depends(get_db),
     current_user=Depends(get_current_user),
     background_tasks: BackgroundTasks = None,
 ):
+    selected_payment = (checkout_request.payment_method or "card").strip().lower()
+    is_cash_on_delivery = selected_payment in {"cod", "cashondelivery", "cash_on_delivery", "cash on delivery"}
+
     cart = db.query(Cart).filter(Cart.user_id == current_user.id).first()
     if not cart or not cart.items:
         raise HTTPException(status_code=400, detail="Cart is empty")
@@ -63,6 +164,40 @@ async def checkout(
             },
             "quantity": item.quantity,
         })
+
+    if is_cash_on_delivery:
+        payment = Payment(
+            order_id=order.id,
+            amount=total,
+            payment_method="cash_on_delivery",
+            transaction_id=f"cod_{order.id}",
+            status="pending",
+        )
+        db.add(payment)
+        order.payment_status = "pending"
+        order.order_status = "pending"
+        for item in list(cart.items):
+            db.delete(item)
+        db.commit()
+        create_notification(
+            db,
+            current_user,
+            "order_confirmed",
+            f"Order #{order.id} is confirmed. Cash on Delivery selected. Waiting for payment on delivery.",
+            order_id=order.id,
+            event_key=f"order:{order.id}:cod:pending",
+            background_tasks=background_tasks,
+        )
+        return CheckoutResponse(
+            order_id=order.id,
+            amount=total,
+            currency=CURRENCY,
+            payment_intent_id=f"cod_{order.id}",
+            checkout_session_id=f"cod_session_{order.id}",
+            checkout_url=None,
+            payment_status=order.payment_status,
+            order_status=order.order_status,
+        )
 
     stripe_key = os.getenv("STRIPE_SECRET_KEY", "").strip()
     if CHECKOUT_MODE == "mock":

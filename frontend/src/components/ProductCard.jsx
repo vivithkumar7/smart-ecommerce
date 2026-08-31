@@ -17,9 +17,7 @@ export default function ProductCard({
 
   return (
     <div className="product-card">
-
       <div className="product-image-container">
-
         {image_url ? (
           <img
             src={image_url}
@@ -32,73 +30,41 @@ export default function ProductCard({
           </div>
         )}
 
+        <div className="product-hero-overlay" />
 
-        <span
-          className={
-            stock > 0
-              ? "stock-badge"
-              : "stock-badge out-stock-badge"
-          }
-        >
-
-          {stock > 0
-            ? `${stock} in stock`
-            : "Out of stock"}
-
-        </span>
-
+        <div className="product-topline">
+          <span className={stock > 0 ? "stock-badge" : "stock-badge out-stock-badge"}>
+            {stock > 0 ? `${stock} in stock` : "Out of stock"}
+          </span>
+          <span className="product-badge">Premium</span>
+        </div>
       </div>
 
-
       <div className="product-content">
-
-        <div className="product-category">
-          {category}
-        </div>
-
-
-        <h3 className="product-name">
-          {name}
-        </h3>
-
-
-        <p className="product-description">
-          {description}
-        </p>
-
-
-        <div className="product-rating">
-
-          <span className="rating-star">
-            ★
-          </span>
-
-          <strong>
+        <div className="product-headline">
+          <span className="product-category">{category}</span>
+          <span className="product-rating">
+            <span className="rating-star">★</span>
             {popularity}
-          </strong>
-
+          </span>
         </div>
 
+        <h3 className="product-name">{name}</h3>
+        <p className="product-description">{description}</p>
 
-        <div className="product-price">
-          ₹{Number(price).toLocaleString("en-IN")}
+        <div className="product-price-row">
+          <div className="product-price">₹{Number(price).toLocaleString("en-IN")}</div>
+          <div className="product-shipping">Free shipping</div>
         </div>
-
 
         <button
           className="add-cart-button"
           disabled={stock <= 0}
           onClick={() => onAddToCart(id)}
         >
-
-          {stock > 0
-            ? "Add to Cart"
-            : "Out of Stock"}
-
+          {stock > 0 ? "Add to Cart" : "Out of Stock"}
         </button>
-
       </div>
-
     </div>
   );
 }

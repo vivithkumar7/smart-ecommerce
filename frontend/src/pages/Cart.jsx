@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 
 import {
   getCart,
@@ -117,12 +118,13 @@ export default function Cart() {
   if (!cart) {
 
     return (
-      <div className="empty-cart">
-
-        <h2>
-          Your cart is empty
-        </h2>
-
+      <div className="empty-cart-wrap">
+        <div className="empty-cart">
+          <span className="empty-cart-badge">Your bag</span>
+          <h2>Your cart is empty</h2>
+          <p>Browse our curated essentials and add a few premium picks.</p>
+          <Link to="/" className="shop-now-button">Shop now</Link>
+        </div>
       </div>
     );
 
@@ -146,16 +148,13 @@ export default function Cart() {
 
         {cart.items.length === 0 ? (
 
-          <div className="empty-cart">
-
-            <h2>
-              Your cart is empty
-            </h2>
-
-            <p>
-              Add some products to continue.
-            </p>
-
+          <div className="empty-cart-wrap">
+            <div className="empty-cart">
+              <span className="empty-cart-badge">Your bag</span>
+              <h2>Your cart is empty</h2>
+              <p>Add some products to continue.</p>
+              <Link to="/" className="shop-now-button">Shop now</Link>
+            </div>
           </div>
 
         ) : (

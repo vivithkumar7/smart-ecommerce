@@ -5,16 +5,17 @@
 }
 
 :root {
-  --ink: #14213d;
-  --muted: #687386;
-  --paper: #f7f8f3;
-  --surface: #ffffff;
-  --line: #dfe4e1;
-  --blue: #155eef;
-  --blue-dark: #0b46bf;
-  --amber: #f5a524;
-  --green: #16845b;
-  --shadow: 0 18px 45px rgba(20, 33, 61, 0.09);
+  --ink: #f5efe6;
+  --muted: #c7bb9a;
+  --paper: #090b0f;
+  --surface: #121821;
+  --surface-2: #171d29;
+  --line: rgba(212, 175, 101, 0.22);
+  --blue: #d4af67;
+  --blue-dark: #b98a2b;
+  --amber: #f4d08b;
+  --green: #8fe3b3;
+  --shadow: 0 18px 45px rgba(0, 0, 0, 0.45);
 }
 
 html,
@@ -25,21 +26,73 @@ body,
 }
 
 body {
-  background: var(--paper);
+  background:
+    radial-gradient(circle at top, rgba(212, 175, 103, 0.14), transparent 22%),
+    linear-gradient(180deg, #090b0f 0%, #10161d 100%);
   color: var(--ink);
   font-family: "DM Sans", "Trebuchet MS", sans-serif;
   letter-spacing: 0;
+  line-height: 1.5;
+  font-size: 16px;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
 }
 
 h1,
 h2,
-h3 {
+h3,
+h4,
+h5,
+h6 {
   font-family: "Space Grotesk", "Trebuchet MS", sans-serif;
-  letter-spacing: 0;
+  letter-spacing: -0.03em;
+  line-height: 1.08;
+  margin: 0;
+}
+
+p,
+span,
+button,
+input,
+select,
+label {
+  font-family: inherit;
 }
 
 button,
 input,
 select {
   font-family: inherit;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease, background 0.2s ease;
+}
+
+img {
+  display: block;
+  max-width: 100%;
+}
+
+@media (max-width: 640px) {
+  body {
+    font-size: 15px;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    letter-spacing: -0.02em;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }

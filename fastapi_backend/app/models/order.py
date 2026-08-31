@@ -4,7 +4,15 @@ from sqlalchemy.sql import func
 
 from app.core.database import Base
 
-ORDER_STATUSES = ("pending", "paid", "shipped", "delivered", "cancelled")
+ORDER_STATUSES = (
+    "pending",
+    "paid",
+    "shipped",
+    "delivered",
+    "cancelled",
+    "return requested",
+    "Return Requested",
+)
 
 
 class Order(Base):
@@ -25,6 +33,7 @@ class Order(Base):
         viewonly=True,
     )
     payments = relationship("Payment", back_populates="order", cascade="all, delete-orphan")
+    return_requests = relationship("ReturnRequest", back_populates="order", cascade="all, delete-orphan")
 
 
 class OrderItem(Base):

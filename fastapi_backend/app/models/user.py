@@ -11,12 +11,14 @@ class User(Base):
         primary_key=True,
         index=True
     )
+#  the id is the primary key and uniquely identifies each user
 
     email = Column(
         String(255),
         unique=True,
         nullable=False
     )
+# email is required and unique so every user must have a valid email value and duplicates are not allowed
 
     password = Column(
         String(255),

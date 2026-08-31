@@ -1,5 +1,12 @@
 import { useNavigate } from "react-router-dom";
 
+const formatCurrency = (value) =>
+  new Intl.NumberFormat("en-IN", {
+    style: "currency",
+    currency: "INR",
+    maximumFractionDigits: 2,
+  }).format(value || 0);
+
 export default function CartSummary({
   cart,
 }) {
@@ -7,51 +14,31 @@ export default function CartSummary({
   const navigate = useNavigate();
 
   return (
-    <div className="cart-summary">
-
-      <h2 className="summary-title">
-        Order Summary
-      </h2>
-
-
-      <div className="summary-row">
-
-        <span>
-          Subtotal
-        </span>
-
-        <span>
-          ₹{cart.subtotal}
-        </span>
-
+    <aside className="cart-summary">
+      <div className="summary-header">
+        <h2 className="summary-title">Order Summary</h2>
+        <span className="summary-badge">Secure checkout</span>
       </div>
 
-
       <div className="summary-row">
-
-        <span>
-          Tax (18%)
-        </span>
-
-        <span>
-          ₹{cart.tax}
-        </span>
-
+        <span>Subtotal</span>
+        <span>{formatCurrency(cart.subtotal)}</span>
       </div>
 
+      <div className="summary-row">
+        <span>Tax (2%)</span>
+        <span>{formatCurrency(cart.tax)}</span>
+      </div>
+
+      <div className="summary-row delivery-row">
+        <span>Delivery</span>
+        <span className="delivery-free">Free</span>
+      </div>
 
       <div className="summary-total">
-
-        <span>
-          Grand Total
-        </span>
-
-        <span>
-          ₹{cart.grand_total}
-        </span>
-
+        <span>Grand Total</span>
+        <span>{formatCurrency(cart.grand_total)}</span>
       </div>
-
 
       <button
         type="button"
@@ -61,6 +48,7 @@ export default function CartSummary({
         Proceed to Checkout
       </button>
 
-    </div>
+      <p className="summary-note">You are protected by secure payment checkout.</p>
+    </aside>
   );
 }
