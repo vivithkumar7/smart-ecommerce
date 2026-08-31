@@ -11,6 +11,7 @@ from app.models.cart import Cart
 from app.models.order import Order, OrderItem
 from app.models.order import ORDER_STATUSES
 from app.models.payment import Payment
+from app.models.refund import Refund
 from app.models.return_request import ReturnRequest
 from app.schemas.order import (
     CheckoutRequest,
@@ -118,6 +119,37 @@ def request_return(
         background_tasks=None,
     )
     return return_request
+
+
+@router.get("/orders/{order_id}/refunds")
+def list_order_refunds(
+    order_id: int,
+    x_admin_key: str | None = Header(default=None),
+    db: Session = Depends(get_db),
+):
+    if not ORDER_STATUS_ADMIN_KEY or x_admin_key != ORDER_STATUS_ADMIN_KEY:
+        raise HTTPException(status_code=401, detail="Admin authorization required")
+
+    order = db.query(Order).filter(Order.id == order_id).first()
+    if not order:
+        raise HTTPException(status_code=404, detail="Order not found")
+
+    refunds = db.query(Refund).filter(Refund.order_id == order_id).order_by(Refund.created_at.desc()).all()
+    return [
+        {
+            "id": refund.id,
+            "order_id": refund.order_id,
+            "user_id": refund.user_id,
+            "amount": refund.amount,
+            "payment_method": refund.payment_method,
+            "transaction_id": refund.transaction_id,
+            "status": refund.status,
+            "reason": refund.reason,
+            "note": refund.note,
+            "created_at": refund.created_at,
+        }
+        for refund in refunds
+    ]
 
 
 @router.post("/checkout", response_model=CheckoutResponse)
@@ -415,6 +447,25 @@ async def approve_reject_return(
         order.order_status = "return approved"
         notification_type = "return_approved"
         notification_message = f"Return for order #{order.id} has been approved. Please ship the items back to us."
+
+        refund_amount = float(order.total or 0.0)
+        existing_refund = db.query(Refund).filter(Refund.order_id == order.id).first()
+        if existing_refund is None:
+            payment_method = "stripe" if order.payments else "cash_on_delivery"
+            refund_transaction_id = None
+            if order.payments:
+                refund_transaction_id = order.payments[0].transaction_id
+            refund = Refund(
+                order_id=order.id,
+                user_id=order.user_id,
+                amount=refund_amount,
+                payment_method=payment_method,
+                transaction_id=refund_transaction_id,
+                status="pending",
+                reason=return_request.reason,
+                note=return_request.comment,
+            )
+            db.add(refund)
     else:
         order.order_status = "return rejected"
         notification_type = "return_rejected"

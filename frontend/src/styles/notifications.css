@@ -236,14 +236,18 @@
 
 .order-card-actions,
 .history-title-row {
-  justify-content: flex-end;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  align-items: flex-end;
   flex-wrap: wrap;
   padding-top: 4px;
 }
 
 .return-button,
 .mark-all-button,
-.track-button {
+.track-button,
+.details-button {
   background: linear-gradient(135deg, #d4af67, #b98a2b);
   border: none;
   border-radius: 12px;
@@ -256,10 +260,28 @@
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
+.details-button {
+  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+  box-shadow: 0 12px 24px rgba(37, 99, 235, 0.25);
+  color: #ffffff;
+}
+
+.details-button:hover {
+  background: linear-gradient(135deg, #1d4ed8, #1e40af);
+  transform: translateY(-1px);
+  box-shadow: 0 14px 28px rgba(37, 99, 235, 0.35);
+}
+
 .return-button:hover,
 .track-button:hover {
   transform: translateY(-1px);
   box-shadow: 0 14px 28px rgba(37, 99, 235, 0.28);
+}
+
+.action-buttons {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
 }
 
 .tracking-card {
@@ -327,8 +349,15 @@
 }
 
 .return-button:disabled {
-  cursor: wait;
-  opacity: 0.7;
+  cursor: not-allowed;
+  opacity: 0.5;
+  background: linear-gradient(135deg, #999, #777) !important;
+  box-shadow: none !important;
+}
+
+.return-button:disabled:hover {
+  transform: none !important;
+  box-shadow: none !important;
 }
 
 .info-note,

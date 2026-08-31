@@ -80,11 +80,36 @@ export default function Orders() {
   }, []);
 
   const canRequestReturn = (order) => {
-    if (!order || order.order_status !== "delivered") return false;
+    if (!order) return false;
+    const statusLower = String(order.order_status || "").trim().toLowerCase();
+    if (statusLower !== "delivered") return false;
+    
     const createdAt = new Date(order.created_at);
     const cutoff = new Date(createdAt);
     cutoff.setDate(cutoff.getDate() + 7);
     return new Date() <= cutoff;
+  };
+
+  const getReturnEligibilityMessage = (order) => {
+    if (!order) return "Only delivered orders are eligible.";
+
+    const statusLower = String(order.order_status || "").trim().toLowerCase();
+
+    if (statusLower === "delivered") {
+      const createdAt = new Date(order.created_at);
+      const cutoff = new Date(createdAt);
+      cutoff.setDate(cutoff.getDate() + 7);
+      if (new Date() > cutoff) {
+        return "Return window expired. This order is outside the 7-day return period.";
+      }
+      return "This order is eligible for return within 7 days of delivery.";
+    }
+
+    if (statusLower.includes("return")) {
+      return "Return request already submitted and under review.";
+    }
+
+    return "Only delivered orders are eligible for a return.";
   };
 
   const orderCountLabel = useMemo(() => `${orders.length} order${orders.length === 1 ? "" : "s"}`, [orders.length]);
@@ -189,24 +214,39 @@ export default function Orders() {
               )}
 
               <div className="order-card-actions">
-                {canRequestReturn(order) && (
+                <div className="action-buttons">
                   <button
                     className="return-button"
                     type="button"
-                    disabled={submitting === order.id}
-                    onClick={() => handleReturnRequest(order.id)}
+                    disabled={!canRequestReturn(order) || submitting === order.id}
+                    title={!canRequestReturn(order) ? getReturnEligibilityMessage(order) : "Request a return for this order"}
+                    onClick={() => {
+                      if (canRequestReturn(order)) {
+                        handleReturnRequest(order.id);
+                      } else {
+                        alert(getReturnEligibilityMessage(order));
+                      }
+                    }}
                   >
-                    {submitting === order.id ? "Submitting..." : "Request Return"}
+                    {submitting === order.id
+                      ? "Submitting..."
+                      : !canRequestReturn(order)
+                        ? "Only delivered orders are eligible"
+                        : "Request Return"}
                   </button>
-                )}
+                  
+                  <button
+                    className="details-button"
+                    type="button"
+                    onClick={() => alert(`Order #${order.id} Details:\n\nTotal: ₹${order.total}\nStatus: ${order.order_status}\nCreated: ${new Date(order.created_at).toLocaleString()}\n\nItems: ${order.items?.length || 0}`)}
+                  >
+                    View Order Details
+                  </button>
+                </div>
 
-              {!canRequestReturn(order) && order.order_status !== "Return Requested" && order.order_status !== "return requested" && (
-                <span className="info-note">
-                  {order.order_status === "pending" || order.order_status === "paid"
-                    ? "Payment status will update after completion."
-                    : "Returns available only for delivered orders within 7 days."}
-                </span>
-              )}
+                {!canRequestReturn(order) && order.order_status !== "Return Requested" && order.order_status !== "return requested" && (
+                  <span className="info-note">{getReturnEligibilityMessage(order)}</span>
+                )}
 
                 {(order.order_status === "Return Requested" || order.order_status === "return requested") && (
                   <span className="success-note">Return requested. We are reviewing it.</span>

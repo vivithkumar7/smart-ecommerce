@@ -34,6 +34,7 @@ class Order(Base):
     )
     payments = relationship("Payment", back_populates="order", cascade="all, delete-orphan")
     return_requests = relationship("ReturnRequest", back_populates="order", cascade="all, delete-orphan")
+    refunds = relationship("Refund", back_populates="order", cascade="all, delete-orphan")
 
 
 class OrderItem(Base):
