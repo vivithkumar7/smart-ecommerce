@@ -109,38 +109,80 @@
 }
 
 .status-pill {
+  align-items: center;
   border-radius: 999px;
   display: inline-flex;
   font-size: 12px;
   font-weight: 800;
+  gap: 6px;
   letter-spacing: 0.02em;
-  padding: 8px 12px;
+  padding: 8px 14px;
   text-transform: capitalize;
+  transition: all 0.3s ease;
+}
+
+.status-icon {
+  font-size: 14px;
 }
 
 .status-pill.success {
   background: #e8f8ef;
   color: #0f766e;
+  box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.15);
+}
+
+.status-pill.success:hover {
+  box-shadow: 0 0 12px rgba(15, 118, 110, 0.35), 0 0 0 3px rgba(15, 118, 110, 0.15);
+}
+
+.status-pill.shipped {
+  background: #e0f2fe;
+  color: #075985;
+  box-shadow: 0 0 0 3px rgba(7, 89, 133, 0.15);
+}
+
+.status-pill.shipped:hover {
+  box-shadow: 0 0 12px rgba(7, 89, 133, 0.35), 0 0 0 3px rgba(7, 89, 133, 0.15);
 }
 
 .status-pill.warning {
   background: #fff4db;
   color: #b45309;
+  box-shadow: 0 0 0 3px rgba(180, 83, 9, 0.15);
+}
+
+.status-pill.warning:hover {
+  box-shadow: 0 0 12px rgba(180, 83, 9, 0.35), 0 0 0 3px rgba(180, 83, 9, 0.15);
 }
 
 .status-pill.danger {
   background: #ffe5ea;
   color: #b42318;
+  box-shadow: 0 0 0 3px rgba(180, 35, 24, 0.15);
+}
+
+.status-pill.danger:hover {
+  box-shadow: 0 0 12px rgba(180, 35, 24, 0.35), 0 0 0 3px rgba(180, 35, 24, 0.15);
 }
 
 .status-pill.pending {
   background: #fff3d6;
   color: #b7791f;
+  box-shadow: 0 0 0 3px rgba(183, 121, 31, 0.15);
+}
+
+.status-pill.pending:hover {
+  box-shadow: 0 0 12px rgba(183, 121, 31, 0.35), 0 0 0 3px rgba(183, 121, 31, 0.15);
 }
 
 .status-pill.neutral {
   background: #edf2ff;
   color: #374151;
+  box-shadow: 0 0 0 3px rgba(55, 65, 81, 0.15);
+}
+
+.status-pill.neutral:hover {
+  box-shadow: 0 0 12px rgba(55, 65, 81, 0.35), 0 0 0 3px rgba(55, 65, 81, 0.15);
 }
 
 .order-card-meta {
@@ -200,7 +242,8 @@
 }
 
 .return-button,
-.mark-all-button {
+.mark-all-button,
+.track-button {
   background: linear-gradient(135deg, #d4af67, #b98a2b);
   border: none;
   border-radius: 12px;
@@ -213,9 +256,74 @@
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
-.return-button:hover {
+.return-button:hover,
+.track-button:hover {
   transform: translateY(-1px);
   box-shadow: 0 14px 28px rgba(37, 99, 235, 0.28);
+}
+
+.tracking-card {
+  background: linear-gradient(135deg, rgba(14, 165, 233, 0.08), rgba(59, 130, 246, 0.04));
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(14, 165, 233, 0.25);
+  border-radius: 18px;
+  padding: 18px 20px;
+  box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.08), 0 8px 32px rgba(14, 165, 233, 0.08);
+}
+
+.tracking-card-content {
+  align-items: center;
+  display: flex;
+  justify-content: space-between;
+  gap: 18px;
+  flex-wrap: wrap;
+}
+
+.tracking-left {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.tracking-label {
+  color: #0ea5e9;
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.tracking-value {
+  color: #bae6fd;
+  font-size: 1.2rem;
+  font-weight: 800;
+}
+
+.tracking-subtext {
+  color: #7dd3fc;
+  font-size: 0.8rem;
+  margin-top: 2px;
+}
+
+.shipment-row {
+  align-items: center;
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.shipment-badge {
+  background: rgba(14, 165, 233, 0.12);
+  border: 1px solid rgba(14, 165, 233, 0.25);
+  border-radius: 999px;
+  color: #bae6fd;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  padding: 7px 10px;
+  text-transform: uppercase;
 }
 
 .return-button:disabled {

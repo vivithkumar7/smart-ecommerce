@@ -16,21 +16,45 @@ const normalizeStatus = (status) => {
 
   if (key === "paid") return "Paid";
   if (key === "pending") return "Pending payment";
+  if (key === "shipped") return "Shipped";
   if (key === "delivered") return "Delivered";
   if (key === "cancelled") return "Cancelled";
   if (key.includes("return")) return "Return requested";
-  if (key === "shipped") return "Shipped";
   return String(status).trim();
 };
 
 const statusTone = (status) => {
   if (!status) return "neutral";
   const key = status.toLowerCase();
+  if (key === "shipped") return "shipped";
   if (key === "delivered" || key === "paid") return "success";
   if (key.includes("return")) return "warning";
   if (key === "cancelled") return "danger";
   if (key === "pending") return "pending";
   return "neutral";
+};
+
+const shipmentLabel = (order) => {
+  if (!order) return "Awaiting shipment";
+  const key = String(order.order_status || "").trim().toLowerCase();
+  if (key === "shipped") return "Shipment in progress";
+  if (key === "delivered") return "Delivered";
+  if (key === "paid") return "Preparing shipment";
+  if (key === "pending") return "Awaiting payment";
+  if (key.includes("return")) return "Return review";
+  return "Awaiting shipment";
+};
+
+const getStatusIcon = (status) => {
+  if (!status) return "⏳";
+  const key = String(status).trim().toLowerCase();
+  if (key === "paid") return "💳";
+  if (key === "pending") return "⏳";
+  if (key === "shipped") return "🚚";
+  if (key === "delivered") return "✓";
+  if (key === "cancelled") return "✕";
+  if (key.includes("return")) return "↩";
+  return "📦";
 };
 
 export default function Orders() {
@@ -113,6 +137,7 @@ export default function Orders() {
                   <h2>#{order.id}</h2>
                 </div>
                 <span className={`status-pill ${statusTone(order.order_status)}`}>
+                  <span className="status-icon">{getStatusIcon(order.order_status)}</span>
                   {normalizeStatus(order.order_status)}
                 </span>
               </div>
@@ -134,10 +159,23 @@ export default function Orders() {
                   <strong>{order.payment_method || "Card"}</strong>
                 </div>
                 <div className="summary-stat">
-                  <span>Delivery</span>
-                  <strong>{order.order_status === "delivered" ? "Delivered" : "In transit"}</strong>
+                  <span>Shipment</span>
+                  <strong>{shipmentLabel(order)}</strong>
                 </div>
               </div>
+
+              {order.order_status === "shipped" && (
+                <div className="tracking-card">
+                  <div className="tracking-card-content">
+                    <div className="tracking-left">
+                      <div className="tracking-label">Shipment Status</div>
+                      <div className="tracking-value">In Transit</div>
+                      <div className="tracking-subtext">Estimated delivery in 3-5 days</div>
+                    </div>
+                    <button type="button" className="track-button">Track Shipment</button>
+                  </div>
+                </div>
+              )}
 
               {order.items?.length > 0 && (
                 <div className="order-items">
