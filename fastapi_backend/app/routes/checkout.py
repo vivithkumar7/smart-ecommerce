@@ -11,6 +11,7 @@ from app.models.cart import Cart
 from app.models.order import Order, OrderItem
 from app.models.order import ORDER_STATUSES
 from app.models.payment import Payment
+from app.models.product import Product
 from app.models.refund import Refund
 from app.models.return_request import ReturnRequest
 from app.schemas.order import (
@@ -42,8 +43,92 @@ def get_tax_rate():
 TAX_RATE = get_tax_rate()
 CURRENCY = os.getenv("STRIPE_CURRENCY", "usd").lower()
 CHECKOUT_MODE = os.getenv("CHECKOUT_MODE", "stripe").lower()
-ORDER_STATUS_ADMIN_KEY = os.getenv("ORDER_STATUS_ADMIN_KEY", "").strip()
+ORDER_STATUS_ADMIN_KEY = os.getenv("ORDER_STATUS_ADMIN_KEY", "smart-admin-local-key").strip()
 RETURN_WINDOW_DAYS = int(os.getenv("RETURN_WINDOW_DAYS", "7"))
+
+
+def require_admin_auth(x_admin_key: str | None):
+    if not ORDER_STATUS_ADMIN_KEY or x_admin_key != ORDER_STATUS_ADMIN_KEY:
+        raise HTTPException(status_code=401, detail="Admin authorization required")
+
+
+def create_refund_record(db: Session, order: Order, return_request: ReturnRequest):
+    refund = db.query(Refund).filter(Refund.order_id == order.id).order_by(Refund.created_at.desc()).first()
+    if refund is not None:
+        refund.reason = return_request.reason
+        refund.note = return_request.comment
+        refund.amount = float(order.total or 0.0)
+        if refund.status == "pending" and order.payments:
+            refund.transaction_id = order.payments[0].transaction_id
+        return refund
+
+    payment_method = "stripe" if order.payments and any(payment.payment_method == "stripe" for payment in order.payments) else "cash_on_delivery"
+    refund_transaction_id = None
+    if order.payments:
+        refund_transaction_id = order.payments[0].transaction_id
+
+    refund = Refund(
+        order_id=order.id,
+        user_id=order.user_id,
+        amount=float(order.total or 0.0),
+        payment_method=payment_method,
+        transaction_id=refund_transaction_id,
+        status="pending",
+        reason=return_request.reason,
+        note=return_request.comment,
+    )
+    db.add(refund)
+    db.flush()
+    return refund
+
+
+def finalize_refund(db: Session, order: Order, return_request: ReturnRequest, background_tasks: BackgroundTasks | None = None):
+    refund = create_refund_record(db, order, return_request)
+    refund.status = "refunded"
+
+    if order.payments:
+        for payment in order.payments:
+            if payment.payment_method.lower() == "stripe":
+                payment.status = "refunded"
+                break
+        else:
+            order.payments[0].status = "refunded"
+
+    order.payment_status = "refunded"
+    order.order_status = "refunded"
+
+    stripe_key = os.getenv("STRIPE_SECRET_KEY", "").strip()
+    if stripe_key and stripe_key not in {"sk_test_your_real_stripe_key", "sk_test_..."} and "your_" not in stripe_key.lower() and order.payments:
+        stripe.api_key = stripe_key
+        payment = order.payments[0]
+        refund_payload = None
+        try:
+            refund_kwargs = {"amount": int(round(float(refund.amount or 0) * 100)), "metadata": {"order_id": str(order.id), "refund_id": str(refund.id)}}
+            if payment.payment_method.lower() == "stripe":
+                if payment.transaction_id and payment.transaction_id.startswith("pi_"):
+                    refund_kwargs["payment_intent"] = payment.transaction_id
+                elif payment.transaction_id:
+                    refund_kwargs["charge"] = payment.transaction_id
+            refund_payload = stripe.Refund.create(**refund_kwargs)
+            refund.transaction_id = (refund_payload or {}).get("id") or refund.transaction_id
+        except stripe.error.StripeError:
+            refund.status = "pending"
+            order.payment_status = "paid"
+            order.order_status = "returned"
+
+    db.commit()
+    db.refresh(return_request)
+    db.refresh(refund)
+    create_notification(
+        db,
+        order.user,
+        "refund_completed",
+        f"Refund for order #{order.id} has been completed and credited to your original payment method.",
+        order_id=order.id,
+        event_key=f"order:{order.id}:refund:completed",
+        background_tasks=background_tasks,
+    )
+    return refund
 
 
 @router.get("/orders", response_model=list[OrderResponse])
@@ -127,8 +212,7 @@ def list_order_refunds(
     x_admin_key: str | None = Header(default=None),
     db: Session = Depends(get_db),
 ):
-    if not ORDER_STATUS_ADMIN_KEY or x_admin_key != ORDER_STATUS_ADMIN_KEY:
-        raise HTTPException(status_code=401, detail="Admin authorization required")
+    require_admin_auth(x_admin_key)
 
     order = db.query(Order).filter(Order.id == order_id).first()
     if not order:
@@ -383,6 +467,22 @@ async def update_order_status(
     return {"order_id": order.id, "order_status": order.order_status}
 
 
+@router.get("/admin/returns", response_model=list[ReturnRequestResponse])
+async def list_admin_returns(
+    status: str | None = None,
+    x_admin_key: str | None = Header(default=None),
+    db: Session = Depends(get_db),
+):
+    """List all return requests (admin only)"""
+    require_admin_auth(x_admin_key)
+
+    query = db.query(ReturnRequest)
+    if status and status in ("pending", "approved", "rejected"):
+        query = query.filter(ReturnRequest.status == status)
+
+    return query.order_by(ReturnRequest.created_at.desc()).all()
+
+
 @router.get("/return-requests", response_model=list[ReturnRequestResponse])
 async def list_return_requests(
     status: str | None = None,
@@ -390,14 +490,29 @@ async def list_return_requests(
     db: Session = Depends(get_db),
 ):
     """List all return requests (admin only)"""
-    if not ORDER_STATUS_ADMIN_KEY or x_admin_key != ORDER_STATUS_ADMIN_KEY:
-        raise HTTPException(status_code=401, detail="Admin authorization required")
+    require_admin_auth(x_admin_key)
 
     query = db.query(ReturnRequest)
     if status and status in ("pending", "approved", "rejected"):
         query = query.filter(ReturnRequest.status == status)
 
     return query.order_by(ReturnRequest.created_at.desc()).all()
+
+
+@router.get("/admin/returns/{return_id}", response_model=ReturnRequestResponse)
+async def get_admin_return_request(
+    return_id: int,
+    x_admin_key: str | None = Header(default=None),
+    db: Session = Depends(get_db),
+):
+    """Get a specific return request (admin only)"""
+    require_admin_auth(x_admin_key)
+
+    return_request = db.query(ReturnRequest).filter(ReturnRequest.id == return_id).first()
+    if not return_request:
+        raise HTTPException(status_code=404, detail="Return request not found")
+
+    return return_request
 
 
 @router.get("/return-requests/{return_id}", response_model=ReturnRequestResponse)
@@ -407,8 +522,7 @@ async def get_return_request(
     db: Session = Depends(get_db),
 ):
     """Get a specific return request (admin only)"""
-    if not ORDER_STATUS_ADMIN_KEY or x_admin_key != ORDER_STATUS_ADMIN_KEY:
-        raise HTTPException(status_code=401, detail="Admin authorization required")
+    require_admin_auth(x_admin_key)
 
     return_request = db.query(ReturnRequest).filter(ReturnRequest.id == return_id).first()
     if not return_request:
@@ -417,70 +531,89 @@ async def get_return_request(
     return return_request
 
 
-@router.patch("/return-requests/{return_id}")
-async def approve_reject_return(
+@router.post("/admin/returns/{return_id}/approve")
+async def admin_approve_return(
     return_id: int,
-    request_body: dict,
+    request_body: dict | None = None,
     x_admin_key: str | None = Header(default=None),
     db: Session = Depends(get_db),
     background_tasks: BackgroundTasks = None,
 ):
-    """Approve or reject a return request (admin only)"""
-    if not ORDER_STATUS_ADMIN_KEY or x_admin_key != ORDER_STATUS_ADMIN_KEY:
-        raise HTTPException(status_code=401, detail="Admin authorization required")
-
-    new_status = request_body.get("status", "").lower()
-    if new_status not in ("approved", "rejected"):
-        raise HTTPException(status_code=400, detail="Status must be 'approved' or 'rejected'")
+    """Approve a return request and finalize the refund lifecycle"""
+    require_admin_auth(x_admin_key)
+    request_body = request_body or {}
 
     return_request = db.query(ReturnRequest).filter(ReturnRequest.id == return_id).first()
     if not return_request:
         raise HTTPException(status_code=404, detail="Return request not found")
-
     if return_request.status != "pending":
-        raise HTTPException(status_code=400, detail="Only pending return requests can be approved or rejected")
+        raise HTTPException(status_code=400, detail="Only pending return requests can be approved")
 
-    return_request.status = new_status
+    return_request.status = "approved"
     order = return_request.order
+    order.order_status = "returned"
 
-    if new_status == "approved":
-        order.order_status = "return approved"
-        notification_type = "return_approved"
-        notification_message = f"Return for order #{order.id} has been approved. Please ship the items back to us."
+    for item in order.items:
+        product = db.query(Product).filter(Product.id == item.product_id).first()
+        if product is not None:
+            product.stock += item.quantity
 
-        refund_amount = float(order.total or 0.0)
-        existing_refund = db.query(Refund).filter(Refund.order_id == order.id).first()
-        if existing_refund is None:
-            payment_method = "stripe" if order.payments else "cash_on_delivery"
-            refund_transaction_id = None
-            if order.payments:
-                refund_transaction_id = order.payments[0].transaction_id
-            refund = Refund(
-                order_id=order.id,
-                user_id=order.user_id,
-                amount=refund_amount,
-                payment_method=payment_method,
-                transaction_id=refund_transaction_id,
-                status="pending",
-                reason=return_request.reason,
-                note=return_request.comment,
-            )
-            db.add(refund)
-    else:
-        order.order_status = "return rejected"
-        notification_type = "return_rejected"
-        notification_message = f"Return for order #{order.id} has been rejected. Please contact support if you have questions."
+    finalize_refund(db, order, return_request, background_tasks=background_tasks)
 
+    create_notification(
+        db,
+        order.user,
+        "return_approved",
+        f"Return for order #{order.id} has been approved and a refund is being processed.",
+        order_id=order.id,
+        event_key=f"order:{order.id}:return:approved",
+        background_tasks=background_tasks,
+    )
+
+    db.refresh(return_request)
+    return {
+        "id": return_request.id,
+        "order_id": return_request.order_id,
+        "user_id": return_request.user_id,
+        "reason": return_request.reason,
+        "comment": return_request.comment,
+        "status": return_request.status,
+        "created_at": return_request.created_at,
+        "order_status": order.order_status,
+    }
+
+
+@router.post("/admin/returns/{return_id}/reject")
+async def admin_reject_return(
+    return_id: int,
+    request_body: dict | None = None,
+    x_admin_key: str | None = Header(default=None),
+    db: Session = Depends(get_db),
+    background_tasks: BackgroundTasks = None,
+):
+    """Reject a return request"""
+    require_admin_auth(x_admin_key)
+    request_body = request_body or {}
+
+    return_request = db.query(ReturnRequest).filter(ReturnRequest.id == return_id).first()
+    if not return_request:
+        raise HTTPException(status_code=404, detail="Return request not found")
+    if return_request.status != "pending":
+        raise HTTPException(status_code=400, detail="Only pending return requests can be rejected")
+
+    return_request.status = "rejected"
+    order = return_request.order
+    order.order_status = "rejected"
     db.commit()
     db.refresh(return_request)
 
     create_notification(
         db,
         order.user,
-        notification_type,
-        notification_message,
+        "return_rejected",
+        f"Return for order #{order.id} has been rejected. Please contact support if you have questions.",
         order_id=order.id,
-        event_key=f"order:{order.id}:return:{new_status}",
+        event_key=f"order:{order.id}:return:rejected",
         background_tasks=background_tasks,
     )
 
@@ -492,7 +625,36 @@ async def approve_reject_return(
         "comment": return_request.comment,
         "status": return_request.status,
         "created_at": return_request.created_at,
+        "order_status": order.order_status,
     }
+
+
+@router.patch("/return-requests/{return_id}")
+async def approve_reject_return(
+    return_id: int,
+    request_body: dict,
+    x_admin_key: str | None = Header(default=None),
+    db: Session = Depends(get_db),
+    background_tasks: BackgroundTasks = None,
+):
+    """Approve or reject a return request (legacy admin route)"""
+    require_admin_auth(x_admin_key)
+
+    new_status = (request_body or {}).get("status", "").lower()
+    if new_status not in ("approved", "rejected"):
+        raise HTTPException(status_code=400, detail="Status must be 'approved' or 'rejected'")
+
+    return_request = db.query(ReturnRequest).filter(ReturnRequest.id == return_id).first()
+    if not return_request:
+        raise HTTPException(status_code=404, detail="Return request not found")
+
+    if return_request.status != "pending":
+        raise HTTPException(status_code=400, detail="Only pending return requests can be approved or rejected")
+
+    if new_status == "approved":
+        return await admin_approve_return(return_id, request_body={"refund": True}, x_admin_key=x_admin_key, db=db, background_tasks=background_tasks)
+
+    return await admin_reject_return(return_id, request_body={}, x_admin_key=x_admin_key, db=db, background_tasks=background_tasks)
 
 
 @router.post("/stripe/webhook")

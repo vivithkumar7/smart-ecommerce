@@ -12,6 +12,9 @@ ORDER_STATUSES = (
     "cancelled",
     "return requested",
     "Return Requested",
+    "returned",
+    "rejected",
+    "refunded",
 )
 
 

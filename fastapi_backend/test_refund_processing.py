@@ -81,9 +81,14 @@ def test_refund_processing_flow():
     assert return_response.status_code == 200, return_response.text
 
     admin_headers = {"X-Admin-Key": "smart-admin-local-key"}
-    approve_response = client.patch(
-        f"/return-requests/{return_response.json()['id']}",
-        json={"status": "approved"},
+
+    list_admin_returns = client.get("/admin/returns", headers=admin_headers)
+    assert list_admin_returns.status_code == 200, list_admin_returns.text
+    assert any(item["id"] == return_response.json()["id"] for item in list_admin_returns.json())
+
+    approve_response = client.post(
+        f"/admin/returns/{return_response.json()['id']}/approve",
+        json={"refund": True},
         headers=admin_headers,
     )
     assert approve_response.status_code == 200, approve_response.text
@@ -94,4 +99,10 @@ def test_refund_processing_flow():
     refunds = refund_response.json()
     assert len(refunds) == 1, refunds
     assert refunds[0]["amount"] == 250.0
-    assert refunds[0]["status"] in {"pending", "processed"}
+    assert refunds[0]["status"] in {"pending", "processed", "refunded"}
+
+    reject_response = client.post(
+        "/admin/returns/99999/reject",
+        headers=admin_headers,
+    )
+    assert reject_response.status_code == 404, reject_response.text
