@@ -11,49 +11,34 @@ from app.core.config import (
 from app.models.user import User
 
 
-bearer_scheme = HTTPBearer(auto_error=True)
+bearer_scheme = HTTPBearer(auto_error=False)
 
 
-def get_current_user(
-    credentials: HTTPAuthorizationCredentials = Depends(bearer_scheme),
+def get_current_user_optional(
+    credentials: HTTPAuthorizationCredentials | None = Depends(bearer_scheme),
     db: Session = Depends(get_db)
 ):
+    if not credentials:
+        return None
+
     token = credentials.credentials
-
     try:
-
         payload = jwt.decode(
             token,
             SECRET_KEY,
             algorithms=[ALGORITHM]
         )
-
         user_id = payload.get("sub")
-
         if not user_id:
-            raise HTTPException(
-                status_code=401,
-                detail="Invalid token"
-            )
-
+            return None
     except (JWTError, ValueError, TypeError):
-
-        raise HTTPException(
-            status_code=401,
-            detail="Invalid or expired token"
-        )
+        return None
 
     user = db.query(User).filter(
         User.id == int(user_id)
     ).first()
-
     if not user:
-
-        raise HTTPException(
-            status_code=401,
-            detail="Session expired. Please log in again.",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
+        return None
 
     if not user.is_active:
         raise HTTPException(
@@ -61,4 +46,16 @@ def get_current_user(
             detail="This account is deactivated.",
         )
 
+    return user
+
+
+def get_current_user(
+    user: User | None = Depends(get_current_user_optional),
+):
+    if user is None:
+        raise HTTPException(
+            status_code=401,
+            detail="Not authenticated",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
     return user

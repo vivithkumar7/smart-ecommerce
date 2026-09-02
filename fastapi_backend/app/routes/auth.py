@@ -147,6 +147,17 @@ def signup(
     ).first()
 
     if existing_user:
+        if verify_password(request.password, existing_user.password):
+            access_token = create_access_token(
+                data={"sub": str(existing_user.id)}
+            )
+            return {
+                "access_token": access_token,
+                "token_type": "bearer",
+                "user_id": existing_user.id,
+                "email": existing_user.email,
+                "message": "Account already exists. Signed in successfully.",
+            }
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Email already registered"

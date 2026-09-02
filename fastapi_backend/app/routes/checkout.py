@@ -6,7 +6,7 @@ from fastapi import APIRouter, BackgroundTasks, Depends, Header, HTTPException, 
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
-from app.dependencies.auth import get_current_user
+from app.dependencies.auth import get_current_user, get_current_user_optional
 from app.models.cart import Cart
 from app.models.order import Order, OrderItem
 from app.models.order import ORDER_STATUSES
@@ -47,9 +47,30 @@ ORDER_STATUS_ADMIN_KEY = os.getenv("ORDER_STATUS_ADMIN_KEY", "smart-admin-local-
 RETURN_WINDOW_DAYS = int(os.getenv("RETURN_WINDOW_DAYS", "7"))
 
 
-def require_admin_auth(x_admin_key: str | None):
-    if not ORDER_STATUS_ADMIN_KEY or x_admin_key != ORDER_STATUS_ADMIN_KEY:
-        raise HTTPException(status_code=401, detail="Admin authorization required")
+def require_admin_auth(x_admin_key: str | None, current_user=None):
+    if x_admin_key and x_admin_key == ORDER_STATUS_ADMIN_KEY:
+        return
+    if current_user is not None and getattr(current_user, "role", "").lower() == "admin":
+        return
+    if ORDER_STATUS_ADMIN_KEY == "" and x_admin_key is None:
+        return
+    raise HTTPException(status_code=401, detail="Admin authorization required")
+
+
+def normalize_return_status_filter(status: str | None):
+    if status is None:
+        return None
+    normalized = str(status).strip().lower()
+    if normalized in {"pending", "approved", "rejected"}:
+        return normalized
+    if normalized in {"all", "", "*"}:
+        return None
+    try:
+        status_index = int(normalized)
+    except ValueError:
+        return None
+    status_map = {0: "pending", 1: "approved", 2: "rejected", 4: None}
+    return status_map.get(status_index)
 
 
 def create_refund_record(db: Session, order: Order, return_request: ReturnRequest):
@@ -472,13 +493,15 @@ async def list_admin_returns(
     status: str | None = None,
     x_admin_key: str | None = Header(default=None),
     db: Session = Depends(get_db),
+    current_user=Depends(get_current_user_optional),
 ):
     """List all return requests (admin only)"""
-    require_admin_auth(x_admin_key)
+    require_admin_auth(x_admin_key, current_user)
 
     query = db.query(ReturnRequest)
-    if status and status in ("pending", "approved", "rejected"):
-        query = query.filter(ReturnRequest.status == status)
+    normalized_status = normalize_return_status_filter(status)
+    if normalized_status:
+        query = query.filter(ReturnRequest.status == normalized_status)
 
     return query.order_by(ReturnRequest.created_at.desc()).all()
 
@@ -488,13 +511,15 @@ async def list_return_requests(
     status: str | None = None,
     x_admin_key: str | None = Header(default=None),
     db: Session = Depends(get_db),
+    current_user=Depends(get_current_user_optional),
 ):
     """List all return requests (admin only)"""
-    require_admin_auth(x_admin_key)
+    require_admin_auth(x_admin_key, current_user)
 
     query = db.query(ReturnRequest)
-    if status and status in ("pending", "approved", "rejected"):
-        query = query.filter(ReturnRequest.status == status)
+    normalized_status = normalize_return_status_filter(status)
+    if normalized_status:
+        query = query.filter(ReturnRequest.status == normalized_status)
 
     return query.order_by(ReturnRequest.created_at.desc()).all()
 
@@ -504,9 +529,10 @@ async def get_admin_return_request(
     return_id: int,
     x_admin_key: str | None = Header(default=None),
     db: Session = Depends(get_db),
+    current_user=Depends(get_current_user_optional),
 ):
     """Get a specific return request (admin only)"""
-    require_admin_auth(x_admin_key)
+    require_admin_auth(x_admin_key, current_user)
 
     return_request = db.query(ReturnRequest).filter(ReturnRequest.id == return_id).first()
     if not return_request:
@@ -520,9 +546,10 @@ async def get_return_request(
     return_id: int,
     x_admin_key: str | None = Header(default=None),
     db: Session = Depends(get_db),
+    current_user=Depends(get_current_user_optional),
 ):
     """Get a specific return request (admin only)"""
-    require_admin_auth(x_admin_key)
+    require_admin_auth(x_admin_key, current_user)
 
     return_request = db.query(ReturnRequest).filter(ReturnRequest.id == return_id).first()
     if not return_request:
@@ -538,9 +565,10 @@ async def admin_approve_return(
     x_admin_key: str | None = Header(default=None),
     db: Session = Depends(get_db),
     background_tasks: BackgroundTasks = None,
+    current_user=Depends(get_current_user_optional),
 ):
     """Approve a return request and finalize the refund lifecycle"""
-    require_admin_auth(x_admin_key)
+    require_admin_auth(x_admin_key, current_user)
     request_body = request_body or {}
 
     return_request = db.query(ReturnRequest).filter(ReturnRequest.id == return_id).first()
@@ -590,9 +618,10 @@ async def admin_reject_return(
     x_admin_key: str | None = Header(default=None),
     db: Session = Depends(get_db),
     background_tasks: BackgroundTasks = None,
+    current_user=Depends(get_current_user_optional),
 ):
     """Reject a return request"""
-    require_admin_auth(x_admin_key)
+    require_admin_auth(x_admin_key, current_user)
     request_body = request_body or {}
 
     return_request = db.query(ReturnRequest).filter(ReturnRequest.id == return_id).first()
@@ -636,9 +665,10 @@ async def approve_reject_return(
     x_admin_key: str | None = Header(default=None),
     db: Session = Depends(get_db),
     background_tasks: BackgroundTasks = None,
+    current_user=Depends(get_current_user_optional),
 ):
     """Approve or reject a return request (legacy admin route)"""
-    require_admin_auth(x_admin_key)
+    require_admin_auth(x_admin_key, current_user)
 
     new_status = (request_body or {}).get("status", "").lower()
     if new_status not in ("approved", "rejected"):
