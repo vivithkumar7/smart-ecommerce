@@ -14,7 +14,7 @@ def returns_dashboard(request):
     
     try:
         response = requests.get(
-            f"{fastapi_base}/return-requests",
+            f"{fastapi_base}/admin/returns",
             headers={"X-Admin-Key": admin_key},
             timeout=5
         )
@@ -62,12 +62,22 @@ def update_return_status(request):
         if not return_id or not new_status:
             return JsonResponse({"error": "Missing return_id or status"}, status=400)
         
-        response = requests.patch(
-            f"{fastapi_base}/return-requests/{return_id}",
-            json={"status": new_status},
-            headers={"X-Admin-Key": admin_key},
-            timeout=5
-        )
+        if new_status == "approved":
+            response = requests.post(
+                f"{fastapi_base}/admin/returns/{return_id}/approve",
+                json={"refund": True},
+                headers={"X-Admin-Key": admin_key},
+                timeout=5
+            )
+        elif new_status == "rejected":
+            response = requests.post(
+                f"{fastapi_base}/admin/returns/{return_id}/reject",
+                json={},
+                headers={"X-Admin-Key": admin_key},
+                timeout=5
+            )
+        else:
+            return JsonResponse({"error": "Status must be approved or rejected"}, status=400)
         
         if response.status_code in (200, 201):
             return JsonResponse({
