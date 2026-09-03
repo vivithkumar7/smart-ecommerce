@@ -1,4 +1,5 @@
 import asyncio
+import logging
 import os
 import smtplib
 from email.message import EmailMessage
@@ -35,12 +36,14 @@ class NotificationConnectionManager:
 
 
 manager = NotificationConnectionManager()
+logger = logging.getLogger(__name__)
 
 
 def send_notification_email(recipient: str, subject: str, message: str):
     host = os.getenv("SMTP_HOST", "").strip()
     sender = os.getenv("SMTP_FROM", "").strip()
     if not host or not sender:
+        logger.warning("Email notification skipped: SMTP_HOST and SMTP_FROM must be configured")
         return
 
     email = EmailMessage()
@@ -53,12 +56,15 @@ def send_notification_email(recipient: str, subject: str, message: str):
     password = os.getenv("SMTP_PASSWORD", "")
     use_tls = os.getenv("SMTP_USE_TLS", "true").lower() == "true"
 
-    with smtplib.SMTP(host, port, timeout=10) as smtp:
-        if use_tls:
-            smtp.starttls()
-        if username:
-            smtp.login(username, password)
-        smtp.send_message(email)
+    try:
+        with smtplib.SMTP(host, port, timeout=10) as smtp:
+            if use_tls:
+                smtp.starttls()
+            if username:
+                smtp.login(username, password)
+            smtp.send_message(email)
+    except (OSError, smtplib.SMTPException):
+        logger.exception("Email notification failed for recipient %s", recipient)
 
 
 def create_notification(

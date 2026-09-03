@@ -178,6 +178,21 @@ secret from Stripe Dashboard or Stripe CLI.
 Notifications
 -------------
 GET /notifications returns the authenticated user's newest notifications.
+
+Email notifications require SMTP configuration in `fastapi_backend/.env`:
+
+  SMTP_HOST=smtp.gmail.com
+  SMTP_PORT=587
+  SMTP_USERNAME=your-email@example.com
+  SMTP_PASSWORD=your-provider-app-password
+  SMTP_FROM=your-email@example.com
+  SMTP_USE_TLS=true
+
+Use an app password or provider SMTP credential, not your normal email
+password. Restart Uvicorn after changing `.env`. In-app and WebSocket
+notifications continue to work even when SMTP is not configured. Return
+requests created directly in Django admin are database records; use the
+FastAPI admin approve/reject endpoints to trigger the notification workflow.
 POST /notifications/read marks the authenticated user's notifications as read.
 Send an optional list of IDs to mark selected notifications, or use null to
 mark all of the user's notifications:
