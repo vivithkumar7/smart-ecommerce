@@ -188,3 +188,9 @@ class ReturnRequestAdmin(admin.ModelAdmin):
     search_fields = ("reason", "comment", "order__id", "user__email")
     readonly_fields = ("id", "created_at")
     list_editable = ("status",)
+
+    def save_model(self, request, obj, form, change):
+        if obj.status == "pending":
+            obj.order.order_status = "Return Requested"
+            obj.order.save(update_fields=("order_status",))
+        super().save_model(request, obj, form, change)
