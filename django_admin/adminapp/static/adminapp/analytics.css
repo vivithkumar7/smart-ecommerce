@@ -526,3 +526,121 @@ html:has(#analytics-dashboard) #content {
     flex: 1 1 auto;
   }
 }
+
+@media print {
+  @page {
+    margin: 16mm;
+    size: A4;
+  }
+
+  html:has(#analytics-dashboard),
+  html:has(#analytics-dashboard) body,
+  html:has(#analytics-dashboard) #container,
+  html:has(#analytics-dashboard) #content,
+  html:has(#analytics-dashboard) #content-main {
+    background: #ffffff !important;
+    color: #17202a !important;
+  }
+
+  html:has(#analytics-dashboard) #header,
+  html:has(#analytics-dashboard) #nav-sidebar,
+  html:has(#analytics-dashboard) .breadcrumbs,
+  .analytics-hero-actions,
+  .analytics-toolbar,
+  .analytics-live-status {
+    display: none !important;
+  }
+
+  html:has(#analytics-dashboard) #content {
+    padding: 0;
+  }
+
+  #analytics-dashboard {
+    max-width: none;
+    padding: 0;
+    color: #17202a;
+  }
+
+  #analytics-dashboard::before {
+    display: none;
+  }
+
+  .analytics-hero {
+    margin-bottom: 18px;
+    padding: 0 0 16px;
+  }
+
+  .analytics-hero h1,
+  .analytics-panel-heading h2,
+  .analytics-card strong,
+  .analytics-brand-mark .brand-label {
+    color: #17202a !important;
+  }
+
+  .analytics-intro,
+  .analytics-brand-mark small,
+  .analytics-card-label,
+  .analytics-card small,
+  .analytics-panel-mark,
+  .analytics-stock-row,
+  .analytics-empty {
+    color: #4b5563 !important;
+  }
+
+  .analytics-brand-strip,
+  .analytics-card,
+  .analytics-module {
+    background: #ffffff !important;
+    border: 1px solid #cbd5e1;
+    box-shadow: none;
+    break-inside: avoid;
+  }
+
+  .analytics-brand-strip {
+    margin-bottom: 16px;
+    padding: 14px 16px;
+  }
+
+  .analytics-quick-metrics strong,
+  .analytics-quick-metrics span,
+  .analytics-kicker,
+  .analytics-panel-label,
+  .analytics-card-label,
+  .analytics-stock-row strong {
+    color: #9a6700 !important;
+  }
+
+  .analytics-summary,
+  .analytics-grid {
+    gap: 12px;
+  }
+
+  .analytics-card,
+  .analytics-module {
+    padding: 16px;
+  }
+
+  .analytics-revenue-panel,
+  .analytics-stock-panel,
+  .analytics-reports-panel {
+    break-before: auto;
+  }
+
+  .analytics-chart,
+  .analytics-products-panel .analytics-chart,
+  .analytics-payments-panel .analytics-chart,
+  .analytics-payment-circle-panel .analytics-circle-chart {
+    height: 190px;
+  }
+
+  .analytics-reports-panel {
+    margin-top: 12px;
+    break-before: page;
+  }
+
+  .analytics-reports .button {
+    color: #17202a !important;
+    background: #f8fafc !important;
+    border-color: #94a3b8;
+  }
+}
