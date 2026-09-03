@@ -477,6 +477,8 @@ async def update_order_status(
     order = db.query(Order).filter(Order.id == order_id).first()
     if not order:
         raise HTTPException(status_code=404, detail="Order not found")
+    if request.order_status == "shipped" and order.payment_status.lower() != "paid":
+        raise HTTPException(status_code=400, detail="Only paid orders can be shipped")
     if order.order_status == request.order_status:
         return {"order_id": order.id, "order_status": order.order_status}
 
@@ -507,10 +509,12 @@ async def ship_order(
     order = db.query(Order).filter(Order.id == order_id).first()
     if not order:
         raise HTTPException(status_code=404, detail="Order not found")
+    if order.payment_status.lower() != "paid":
+        raise HTTPException(status_code=400, detail="Only paid orders can be shipped")
     if order.order_status == "shipped":
         return {"order_id": order.id, "order_status": order.order_status}
-    if order.order_status not in {"paid", "pending"}:
-        raise HTTPException(status_code=400, detail="Only pending or paid orders can be shipped")
+    if order.order_status != "paid":
+        raise HTTPException(status_code=400, detail="Only paid orders can be shipped")
 
     order.order_status = "shipped"
     db.commit()
