@@ -10,6 +10,12 @@ const notificationMeta = (type) => {
   if (key.includes("payment") && key.includes("success")) {
     return { icon: "✓", label: "Payment success", tone: "success" };
   }
+  if (key.includes("refund") && key.includes("completed")) {
+    return { icon: "✓", label: "Refund completed", tone: "success" };
+  }
+  if (key.includes("refund")) {
+    return { icon: "↻", label: "Refund processing", tone: "warning" };
+  }
   if (key.includes("return")) {
     return { icon: "↩", label: "Return update", tone: "return" };
   }

@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useSearchParams } from "react-router-dom";
+import QRCode from "qrcode";
 
 import { checkoutCart, getCart } from "../api/cartApi";
 
@@ -25,10 +26,27 @@ export default function Checkout() {
   const [cart, setCart] = useState(null);
   const [cartLoading, setCartLoading] = useState(true);
   const [loading, setLoading] = useState(false);
+  const [cardDetails, setCardDetails] = useState({ number: "", expiry: "", cvv: "", name: "" });
+  const [qrCode, setQrCode] = useState("");
   const [selectedPayment, setSelectedPayment] = useState("card");
   const paymentSucceeded = searchParams.get("success") === "true";
   const paymentCancelled = searchParams.get("cancelled") === "true";
   const orderId = searchParams.get("order_id");
+  const isCardPayment = selectedPayment === "card" || selectedPayment === "credit-card";
+  const isUpiPayment = selectedPayment === "gpay" || selectedPayment === "paytm";
+
+  useEffect(() => {
+    if (!isUpiPayment || !cart?.grand_total) {
+      setQrCode("");
+      return undefined;
+    }
+
+    const upiUrl = `upi://pay?pa=smartstore@upi&pn=Smart%20Store&am=${Number(cart.grand_total).toFixed(2)}&cu=INR`;
+    QRCode.toDataURL(upiUrl, { width: 220, margin: 2 })
+      .then(setQrCode)
+      .catch(() => setQrCode(""));
+    return undefined;
+  }, [cart?.grand_total, isUpiPayment]);
 
   useEffect(() => {
     getCart()
@@ -39,6 +57,10 @@ export default function Checkout() {
 
   const handleCheckout = async () => {
     try {
+      if (isCardPayment && Object.values(cardDetails).some((value) => !value.trim())) {
+        alert("Please enter all card details before continuing.");
+        return;
+      }
       setLoading(true);
       const payment = await checkoutCart(selectedPayment);
 
@@ -137,7 +159,7 @@ export default function Checkout() {
               </div>
               <span className="invoice-label">Ready when you are</span>
               <h2>Complete your payment</h2>
-              <p>You will be redirected to Stripe's secure checkout to finish this order.</p>
+              <p>{isCardPayment ? "Enter your card details to continue to secure payment." : isUpiPayment ? "Scan the QR code with your payment app to complete this order." : "Your order will be confirmed for payment on delivery."}</p>
               <div className="payment-methods" aria-label="Accepted payment methods">
                 {paymentOptions.map((method) => (
                   <button
@@ -150,6 +172,25 @@ export default function Checkout() {
                   </button>
                 ))}
               </div>
+
+              {isCardPayment && (
+                <div className="card-details-form">
+                  <label>Cardholder name<input value={cardDetails.name} onChange={(event) => setCardDetails({ ...cardDetails, name: event.target.value })} placeholder="Name on card" /></label>
+                  <label>Card number<input inputMode="numeric" maxLength="19" value={cardDetails.number} onChange={(event) => setCardDetails({ ...cardDetails, number: event.target.value })} placeholder="1234 5678 9012 3456" /></label>
+                  <div className="card-details-row">
+                    <label>Expiry date<input maxLength="5" value={cardDetails.expiry} onChange={(event) => setCardDetails({ ...cardDetails, expiry: event.target.value })} placeholder="MM/YY" /></label>
+                    <label>CVV<input inputMode="numeric" maxLength="4" type="password" value={cardDetails.cvv} onChange={(event) => setCardDetails({ ...cardDetails, cvv: event.target.value })} placeholder="123" /></label>
+                  </div>
+                </div>
+              )}
+
+              {isUpiPayment && (
+                <div className="upi-payment-panel">
+                  <span>Scan with {selectedPayment === "gpay" ? "Google Pay" : "Paytm"}</span>
+                  {qrCode ? <img src={qrCode} alt={`${selectedPayment === "gpay" ? "Google Pay" : "Paytm"} payment QR code`} /> : <strong>Preparing QR code...</strong>}
+                  <small>Amount: {formatCurrency(cart?.grand_total)}</small>
+                </div>
+              )}
 
               <div className="payment-amount">
                 <span>Selected method</span>
@@ -169,7 +210,9 @@ export default function Checkout() {
                   ? "Opening Stripe..."
                   : selectedPayment === "cod"
                     ? "Place order"
-                    : "Continue to payment"}
+                    : isUpiPayment
+                      ? "I've completed payment"
+                      : "Continue to payment"}
               </button>
               <div className="payment-steps">
                 <div><span>1</span><b>Review</b></div>

@@ -140,13 +140,18 @@ def finalize_refund(db: Session, order: Order, return_request: ReturnRequest, ba
     db.commit()
     db.refresh(return_request)
     db.refresh(refund)
+    refund_completed = refund.status == "refunded"
     create_notification(
         db,
         order.user,
-        "refund_completed",
-        f"Refund for order #{order.id} has been completed and credited to your original payment method.",
+        "refund_completed" if refund_completed else "refund_processing",
+        (
+            f"Refund for order #{order.id} has been completed and credited to your original payment method."
+            if refund_completed
+            else f"Refund for order #{order.id} is being processed. We will update you when it is complete."
+        ),
         order_id=order.id,
-        event_key=f"order:{order.id}:refund:completed",
+        event_key=f"order:{order.id}:refund:{'completed' if refund_completed else 'processing'}",
         background_tasks=background_tasks,
     )
     return refund
@@ -170,6 +175,7 @@ def list_orders(
 def request_return(
     order_id: int,
     request: ReturnRequestCreate,
+    background_tasks: BackgroundTasks,
     db: Session = Depends(get_db),
     current_user=Depends(get_current_user),
 ):
@@ -222,7 +228,7 @@ def request_return(
         f"Return requested for order #{order.id}. We will review it shortly.",
         order_id=order.id,
         event_key=f"order:{order.id}:return_requested",
-        background_tasks=None,
+        background_tasks=background_tasks,
     )
     return return_request
 
@@ -483,6 +489,39 @@ async def update_order_status(
         f"Order #{order.id} is now {request.order_status}.",
         order_id=order.id,
         event_key=f"order:{order.id}:status:{request.order_status}",
+        background_tasks=background_tasks,
+    )
+    return {"order_id": order.id, "order_status": order.order_status}
+
+
+@router.post("/admin/orders/{order_id}/ship")
+async def ship_order(
+    order_id: int,
+    x_admin_key: str | None = Header(default=None),
+    db: Session = Depends(get_db),
+    background_tasks: BackgroundTasks = None,
+):
+    if not ORDER_STATUS_ADMIN_KEY or x_admin_key != ORDER_STATUS_ADMIN_KEY:
+        raise HTTPException(status_code=401, detail="Valid order status admin key is required")
+
+    order = db.query(Order).filter(Order.id == order_id).first()
+    if not order:
+        raise HTTPException(status_code=404, detail="Order not found")
+    if order.order_status == "shipped":
+        return {"order_id": order.id, "order_status": order.order_status}
+    if order.order_status not in {"paid", "pending"}:
+        raise HTTPException(status_code=400, detail="Only pending or paid orders can be shipped")
+
+    order.order_status = "shipped"
+    db.commit()
+    create_notification(
+        db,
+        order.user,
+        "shipment_started",
+        f"Order #{order.id} has been shipped and is on its way.",
+        order_id=order.id,
+        event_name="shipment_started",
+        event_key=f"order:{order.id}:shipment:started",
         background_tasks=background_tasks,
     )
     return {"order_id": order.id, "order_status": order.order_status}

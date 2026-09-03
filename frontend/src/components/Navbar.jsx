@@ -1,5 +1,6 @@
 import {
   Link,
+  NavLink,
   useNavigate,
 } from "react-router-dom";
 
@@ -75,14 +76,14 @@ export default function Navbar({
 
             <>
 
-              <Link to="/">
+              <NavLink to="/" end>
                 Products
-              </Link>
+              </NavLink>
 
 
-              <Link to="/cart">
+              <NavLink to="/cart" className="nav-cart-link">
 
-                🛒 Cart
+                <span aria-hidden="true">🛒</span> Cart
 
                 {cartCount > 0 && (
 
@@ -92,15 +93,16 @@ export default function Navbar({
 
                 )}
 
-              </Link>
+              </NavLink>
 
-              <Link to="/orders">
+              <NavLink to="/orders">
                 Orders
-              </Link>
+              </NavLink>
 
               <div className="notification-menu">
-                <button className="notification-button" type="button">
-                  Notifications
+                <button className="notification-button" type="button" aria-label={`Notifications${unreadCount ? `, ${unreadCount} unread` : ""}`}>
+                  <span aria-hidden="true">✦</span>
+                  <span>Notifications</span>
                   {unreadCount > 0 && (
                     <span className="notification-count">{unreadCount}</span>
                   )}
