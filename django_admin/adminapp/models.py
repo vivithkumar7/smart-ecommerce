@@ -88,3 +88,27 @@ class Payment(models.Model):
         managed = False
         db_table = "payments"
         ordering = ["-timestamp"]
+
+
+class ReturnRequest(models.Model):
+    STATUS_CHOICES = (
+        ("pending", "Pending"),
+        ("approved", "Approved"),
+        ("rejected", "Rejected"),
+    )
+
+    id = models.AutoField(primary_key=True)
+    order = models.ForeignKey(Order, db_column="order_id", on_delete=models.DO_NOTHING, related_name="return_requests")
+    user = models.ForeignKey(StoreUser, db_column="user_id", on_delete=models.DO_NOTHING, related_name="return_requests")
+    reason = models.CharField(max_length=255)
+    comment = models.TextField(blank=True, null=True)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="pending")
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        managed = False
+        db_table = "return_requests"
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return f"Return request #{self.pk}"
