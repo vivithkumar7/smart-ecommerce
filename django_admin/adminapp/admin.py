@@ -4,7 +4,7 @@ from django.core.files.storage import default_storage
 from django.db import connection, transaction
 
 from .forms import OrderAdminForm, PaymentAdminForm, ProductAdminForm, StoreUserForm
-from .models import Order, OrderItem, Payment, Product, ReturnRequest, StoreUser
+from .models import Order, OrderItem, Payment, Product, Review, ReturnRequest, StoreUser
 
 
 @admin.register(Product)
@@ -194,3 +194,12 @@ class ReturnRequestAdmin(admin.ModelAdmin):
             obj.order.order_status = "Return Requested"
             obj.order.save(update_fields=("order_status",))
         super().save_model(request, obj, form, change)
+
+
+@admin.register(Review)
+class ReviewAdmin(admin.ModelAdmin):
+    list_display = ("id", "product", "user", "rating", "status", "created_at")
+    list_filter = ("status", "rating", "created_at")
+    search_fields = ("product__name", "user__email", "comment")
+    readonly_fields = ("id", "user", "product", "rating", "comment", "created_at")
+    list_editable = ("status",)

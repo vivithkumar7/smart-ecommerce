@@ -112,3 +112,27 @@ class ReturnRequest(models.Model):
 
     def __str__(self):
         return f"Return request #{self.pk}"
+
+
+class Review(models.Model):
+    STATUS_CHOICES = (
+        ("pending", "Pending"),
+        ("approved", "Approved"),
+        ("rejected", "Rejected"),
+    )
+
+    id = models.AutoField(primary_key=True)
+    user = models.ForeignKey(StoreUser, db_column="user_id", on_delete=models.DO_NOTHING, related_name="reviews")
+    product = models.ForeignKey(Product, db_column="product_id", on_delete=models.DO_NOTHING, related_name="reviews")
+    rating = models.PositiveSmallIntegerField()
+    comment = models.TextField(blank=True, null=True)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="pending")
+    created_at = models.DateTimeField()
+
+    class Meta:
+        managed = False
+        db_table = "reviews"
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return f"Review #{self.pk} - {self.product}"
