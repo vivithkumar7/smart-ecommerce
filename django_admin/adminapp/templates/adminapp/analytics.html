@@ -45,14 +45,14 @@
 
   <div class="analytics-toolbar" aria-label="Dashboard filters">
     <div class="analytics-filter-group">
-      <button type="button" class="analytics-pill active">Last 30 days</button>
-      <button type="button" class="analytics-pill">This month</button>
-      <button type="button" class="analytics-pill">Quarterly</button>
-      <button type="button" class="analytics-pill">All time</button>
+      <button type="button" class="analytics-pill{% if selected_period == '30d' %} active{% endif %}" data-period="30d">Last 30 days</button>
+      <button type="button" class="analytics-pill{% if selected_period == 'month' %} active{% endif %}" data-period="month">This month</button>
+      <button type="button" class="analytics-pill{% if selected_period == 'quarter' %} active{% endif %}" data-period="quarter">Quarterly</button>
+      <button type="button" class="analytics-pill{% if selected_period == 'all' %} active{% endif %}" data-period="all">All time</button>
     </div>
     <div class="analytics-action-group">
       <button type="button" class="analytics-button ghost">Live overview</button>
-      <button type="button" class="analytics-button primary">Export report</button>
+      <a class="analytics-button primary" href="#analytics-reports">Export report</a>
     </div>
   </div>
 
@@ -83,7 +83,7 @@
     <div class="analytics-panel-heading"><div><span class="analytics-panel-label">Inventory watch</span><h2>Low stock alerts</h2></div><span class="analytics-alert-dot"></span></div>
     {% if low_stock %}<div class="analytics-low-stock" role="list">{% for product in low_stock %}<div class="analytics-stock-row" role="listitem"><span>{{ product.name }}</span><strong>{{ product.stock }} left</strong></div>{% endfor %}</div>{% else %}<p class="analytics-empty">Everything is well stocked.</p>{% endif %}
   </div>
-  <div class="module analytics-module analytics-reports-panel">
+  <div id="analytics-reports" class="module analytics-module analytics-reports-panel">
     <div class="analytics-panel-heading"><div><span class="analytics-panel-label">Data center</span><h2>Export reports</h2></div></div>
     <div class="analytics-reports">
     <a class="button" href="{% url 'adminapp-export' 'orders' 'csv' %}">Orders CSV</a>
@@ -104,6 +104,14 @@
 <script id="payment-values" type="application/json">{{ payment_values|safe }}</script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
+document.querySelectorAll(".analytics-pill").forEach((button) => {
+  button.addEventListener("click", () => {
+    const url = new URL(window.location.href);
+    url.searchParams.set("period", button.dataset.period);
+    window.location.href = url.toString();
+  });
+});
+
 const readAnalyticsData = (id) => JSON.parse(document.getElementById(id).textContent);
 
 Chart.defaults.color = "#e9dfd0";

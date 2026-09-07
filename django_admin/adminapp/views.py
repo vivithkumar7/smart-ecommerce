@@ -7,7 +7,7 @@ from datetime import timedelta
 import requests
 from django.contrib.admin.views.decorators import staff_member_required
 from django.db import connection
-from django.db.models import Count
+from django.db.models import Count, Sum
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render
 from django.utils import timezone
@@ -15,40 +15,43 @@ from django.views.decorators.http import require_http_methods
 from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
 
-from .models import Order, Product, StoreUser
+from .models import Order, OrderItem, Product, StoreUser
 
 
 @staff_member_required
 def analytics_dashboard(request):
     today = timezone.now().date()
-    start_date = today - timedelta(days=29)
-    sales = [
-        float(total)
-        for total in Order.objects.filter(payment_status="paid").values_list("total", flat=True)
-    ]
+    period = request.GET.get("period", "30d")
+    period_starts = {
+        "30d": today - timedelta(days=29),
+        "month": today.replace(day=1),
+        "quarter": today - timedelta(days=89),
+    }
+    start_date = period_starts.get(period)
+    orders = Order.objects.all()
+    if start_date:
+        orders = orders.filter(created_at__date__gte=start_date)
+
+    paid_orders = orders.filter(payment_status="paid")
+    sales = [float(total) for total in paid_orders.values_list("total", flat=True)]
     revenue_by_day = {}
-    for order in Order.objects.filter(payment_status="paid", created_at__date__gte=start_date):
+    for order in paid_orders:
         key = order.created_at.date().isoformat()
         revenue_by_day[key] = round(
             revenue_by_day.get(key, 0) + float(order.total),
             2,
         )
 
-    top_products = []
-    with connection.cursor() as cursor:
-        cursor.execute(
-            "SELECT p.name, SUM(oi.quantity) AS units "
-            "FROM order_items oi "
-            "JOIN orders o ON o.id = oi.order_id "
-            "JOIN products p ON p.id = oi.product_id "
-            "WHERE o.payment_status = 'paid' GROUP BY p.name "
-            "ORDER BY units DESC LIMIT 5"
-        )
-        top_products = [{"name": row[0], "units": int(row[1])} for row in cursor.fetchall()]
+    top_products = list(
+        OrderItem.objects.filter(order__in=paid_orders)
+        .values("product__name")
+        .annotate(units=Sum("quantity"))
+        .order_by("-units")[:5]
+    )
 
     payment_status_counts = {
         row["payment_status"]: row["count"]
-        for row in Order.objects.values("payment_status").annotate(count=Count("id"))
+        for row in orders.values("payment_status").annotate(count=Count("id"))
     }
 
     context = {
@@ -59,13 +62,14 @@ def analytics_dashboard(request):
         "low_stock": list(Product.objects.filter(stock__lte=5, is_active=True).order_by("stock", "name")),
         "revenue_labels": json.dumps(sorted(revenue_by_day)),
         "revenue_values": json.dumps([revenue_by_day[key] for key in sorted(revenue_by_day)]),
-        "top_product_labels": json.dumps([item["name"] for item in top_products]),
+        "top_product_labels": json.dumps([item["product__name"] for item in top_products]),
         "top_product_values": json.dumps([item["units"] for item in top_products]),
         "payment_labels": json.dumps(["Paid", "Failed"]),
         "payment_values": json.dumps([
             payment_status_counts.get("paid", 0),
             payment_status_counts.get("failed", 0),
         ]),
+        "selected_period": period if period in {"30d", "month", "quarter", "all"} else "30d",
     }
     return render(request, "adminapp/analytics.html", context)
 
