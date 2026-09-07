@@ -59,6 +59,12 @@ export default function ProductDetails() {
 
   const handleSubmitReview = async (event) => {
     event.preventDefault();
+
+    if (!localStorage.getItem("access_token")) {
+      navigate("/login");
+      return;
+    }
+
     setSubmittingReview(true);
     setReviewError("");
     setReviewMessage("");
@@ -111,6 +117,10 @@ export default function ProductDetails() {
               type="button"
               className="write-review-button"
               onClick={() => {
+                if (!localStorage.getItem("access_token")) {
+                  navigate("/login");
+                  return;
+                }
                 setReviewError("");
                 setReviewMessage("");
                 setShowReviewForm((visible) => !visible);
