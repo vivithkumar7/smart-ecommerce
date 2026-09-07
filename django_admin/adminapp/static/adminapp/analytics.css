@@ -3,20 +3,20 @@ html:has(#analytics-dashboard) body,
 html:has(#analytics-dashboard) #container,
 html:has(#analytics-dashboard) #content,
 html:has(#analytics-dashboard) #content-main {
-  background: #080c12;
-  color: #f7f3ee;
+  background: #f2efe8;
+  color: #17221f;
 }
 
 html:has(#analytics-dashboard) #header {
-  background: #0d141d;
-  border-bottom: 1px solid rgba(244, 208, 139, 0.22);
+  background: #123d35;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
 }
 
 html:has(#analytics-dashboard) #branding h1,
 html:has(#analytics-dashboard) #branding h1 a,
 html:has(#analytics-dashboard) #user-tools,
 html:has(#analytics-dashboard) #user-tools a {
-  color: #f7f3ee;
+  color: #f9f6ef;
 }
 
 html:has(#analytics-dashboard) #content {
@@ -25,20 +25,20 @@ html:has(#analytics-dashboard) #content {
 }
 
 #analytics-dashboard {
-  --dash-bg: #080c12;
-  --dash-bg-2: #101923;
-  --dash-panel: rgba(17, 25, 35, 0.96);
-  --dash-panel-strong: #141c27;
-  --dash-line: rgba(212, 175, 103, 0.18);
-  --dash-ink: #f7f3ee;
-  --dash-muted: #c5bca9;
-  --dash-soft: #8f96a3;
-  --dash-gold: #d4af67;
-  --dash-gold-2: #f4d08b;
-  --dash-blue: #62a7ff;
-  --dash-green: #52d6a1;
-  --dash-red: #ff7d7d;
-  --dash-shadow: rgba(0, 0, 0, 0.36);
+  --dash-bg: #f2efe8;
+  --dash-bg-2: #e7eee6;
+  --dash-panel: #fffdf8;
+  --dash-panel-strong: #123d35;
+  --dash-line: rgba(18, 61, 53, 0.14);
+  --dash-ink: #17221f;
+  --dash-muted: #62706a;
+  --dash-soft: #8a9790;
+  --dash-gold: #e6a23c;
+  --dash-gold-2: #f0b85b;
+  --dash-blue: #5d8fd3;
+  --dash-green: #3c9b73;
+  --dash-red: #e86f61;
+  --dash-shadow: rgba(30, 56, 47, 0.1);
   max-width: 1360px;
   margin: 0 auto;
   padding: 30px 10px 56px;
@@ -52,7 +52,7 @@ html:has(#analytics-dashboard) #content {
   inset: 0 10% auto auto;
   width: 420px;
   height: 420px;
-  background: radial-gradient(circle, rgba(212, 175, 103, 0.18), transparent 60%);
+  background: radial-gradient(circle, rgba(230, 162, 60, 0.18), transparent 60%);
   pointer-events: none;
 }
 
@@ -62,7 +62,7 @@ html:has(#analytics-dashboard) #content {
 
 .analytics-hero {
   align-items: end;
-  border-bottom: 1px solid var(--dash-line);
+  border-bottom: 2px solid var(--dash-panel-strong);
   display: flex;
   justify-content: space-between;
   gap: 16px;
@@ -78,7 +78,7 @@ html:has(#analytics-dashboard) #content {
 
 .analytics-kicker,
 .analytics-panel-label {
-  color: var(--dash-gold-2);
+  color: var(--dash-green);
   font-size: 11px;
   font-weight: 800;
   letter-spacing: .14em;
@@ -88,7 +88,7 @@ html:has(#analytics-dashboard) #content {
 
 .analytics-hero h1 {
   color: var(--dash-ink);
-  font-size: clamp(2rem, 3vw, 3.1rem);
+  font-size: clamp(2.4rem, 4vw, 4.6rem);
   margin: 0;
   letter-spacing: -0.04em;
 }
@@ -108,9 +108,9 @@ html:has(#analytics-dashboard) #content {
 }
 
 .analytics-home-link {
-  color: var(--dash-gold-2);
-  border: 1px solid rgba(212, 175, 103, 0.25);
-  background: rgba(212, 175, 103, 0.08);
+  color: #f9f6ef;
+  border: 1px solid var(--dash-panel-strong);
+  background: var(--dash-panel-strong);
   text-decoration: none;
   padding: 10px 14px;
 }
@@ -127,9 +127,9 @@ html:has(#analytics-dashboard) #content {
   align-items: center;
   justify-content: space-between;
   gap: 18px;
-  background: linear-gradient(135deg, rgba(212, 175, 103, 0.14), rgba(17, 25, 35, 0.95) 40%, rgba(17, 25, 35, 0.9));
-  border: 1px solid var(--dash-line);
-  border-radius: 18px;
+  background: var(--dash-panel-strong);
+  border: 1px solid var(--dash-panel-strong);
+  border-radius: 4px;
   padding: 20px 22px;
   margin-bottom: 24px;
   box-shadow: 0 18px 40px rgba(0, 0, 0, 0.18);
@@ -162,9 +162,9 @@ html:has(#analytics-dashboard) #content {
   gap: 8px;
   padding: 8px 12px;
   border-radius: 999px;
-  background: rgba(82, 214, 161, 0.1);
-  color: #aef0cd;
-  border: 1px solid rgba(82, 214, 161, 0.23);
+  background: #d5f1df;
+  color: #17563e;
+  border: 1px solid #8dceb0;
   font-size: 12px;
   font-weight: 700;
 }
@@ -200,7 +200,7 @@ html:has(#analytics-dashboard) #content {
 
 .analytics-quick-metrics strong {
   font-size: 1.05rem;
-  color: var(--dash-ink);
+  color: #f9f6ef;
 }
 
 .analytics-toolbar {
@@ -208,9 +208,9 @@ html:has(#analytics-dashboard) #content {
   align-items: center;
   justify-content: space-between;
   gap: 16px;
-  background: rgba(17, 25, 35, 0.8);
+  background: transparent;
   border: 1px solid var(--dash-line);
-  border-radius: 14px;
+  border-radius: 0;
   padding: 14px 16px;
   margin-bottom: 22px;
   -webkit-backdrop-filter: blur(10px);
@@ -234,9 +234,9 @@ html:has(#analytics-dashboard) #content {
 }
 
 .analytics-pill.active {
-  background: linear-gradient(135deg, rgba(244, 208, 139, 0.15), rgba(212, 175, 103, 0.08));
-  color: var(--dash-gold-2);
-  border-color: rgba(212, 175, 103, 0.28);
+  background: var(--dash-panel-strong);
+  color: #f9f6ef;
+  border-color: var(--dash-panel-strong);
 }
 
 .analytics-button {
@@ -252,29 +252,30 @@ html:has(#analytics-dashboard) #content {
 }
 
 .analytics-button.primary {
-  background: linear-gradient(135deg, var(--dash-gold-2), var(--dash-gold));
-  color: #14181d;
+  background: var(--dash-red);
+  color: #fffaf2;
 }
 
 .analytics-summary {
   display: flex;
   flex-wrap: wrap;
-  gap: 16px;
+  gap: 12px;
   margin: 0 0 26px;
 }
 
 .analytics-card,
 .analytics-module {
-  background: linear-gradient(180deg, rgba(17, 25, 35, 0.96), rgba(12, 18, 24, 0.96));
+  background: var(--dash-panel);
   border: 1px solid var(--dash-line);
-  border-radius: 16px;
+  border-radius: 4px;
   box-shadow: 0 18px 32px var(--dash-shadow);
   padding: 22px;
   animation: fadeUp 0.45s ease both;
 }
 
 .analytics-card {
-  border-top: 4px solid var(--dash-gold);
+  border-top: 0;
+  border-left: 5px solid var(--dash-gold);
   flex: 1 1 210px;
   min-width: 190px;
   position: relative;
@@ -287,20 +288,20 @@ html:has(#analytics-dashboard) #content {
   inset: 0 auto auto 0;
   width: 100%;
   height: 100%;
-  background: linear-gradient(135deg, rgba(212, 175, 103, 0.11), transparent 55%);
+  background: linear-gradient(135deg, rgba(230, 162, 60, 0.12), transparent 55%);
   pointer-events: none;
 }
 
 .analytics-card-revenue {
-  border-top-color: var(--dash-gold-2);
+  border-left-color: var(--dash-blue);
 }
 
 .analytics-card-users {
-  border-top-color: var(--dash-green);
+  border-left-color: var(--dash-green);
 }
 
 .analytics-card-failed {
-  border-top-color: var(--dash-red);
+  border-left-color: var(--dash-red);
 }
 
 .analytics-card-label,
@@ -331,15 +332,16 @@ html:has(#analytics-dashboard) #content {
 .analytics-grid {
   display: grid;
   gap: 20px;
-  grid-template-columns: minmax(0, 1.35fr) minmax(300px, .85fr);
+  grid-template-columns: minmax(0, 1.6fr) minmax(280px, .9fr);
 }
 
 .analytics-module {
-  min-height: 320px;
+  min-height: 300px;
 }
 
 .analytics-revenue-panel {
-  min-height: 390px;
+  min-height: 420px;
+  grid-row: span 2;
 }
 
 .analytics-panel-heading {
@@ -389,8 +391,9 @@ html:has(#analytics-dashboard) #content {
 .analytics-reports-panel {
   grid-column: 1 / -1;
   min-height: 0;
-  border-color: rgba(244, 208, 139, 0.34);
-  background: linear-gradient(135deg, rgba(45, 35, 22, 0.82), rgba(12, 18, 24, 0.98) 58%);
+  border-color: var(--dash-panel-strong);
+  background: var(--dash-panel-strong);
+  color: #f9f6ef;
 }
 
 .analytics-reports-panel .analytics-panel-heading {
@@ -398,7 +401,7 @@ html:has(#analytics-dashboard) #content {
 }
 
 .analytics-reports-panel .analytics-panel-label {
-  color: var(--dash-green);
+  color: #b8e5c7;
 }
 
 .analytics-reports {
@@ -409,8 +412,8 @@ html:has(#analytics-dashboard) #content {
 }
 
 .analytics-reports .button {
-  background: rgba(212, 175, 103, 0.08);
-  border: 1px solid rgba(212, 175, 103, 0.22);
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
   border-radius: 10px;
   color: var(--dash-ink);
   font-size: 12px;
@@ -421,7 +424,7 @@ html:has(#analytics-dashboard) #content {
 }
 
 .analytics-reports .button:hover {
-  background: linear-gradient(135deg, var(--dash-gold-2), var(--dash-gold));
+  background: var(--dash-gold-2);
   border-color: transparent;
   color: #111;
 }
