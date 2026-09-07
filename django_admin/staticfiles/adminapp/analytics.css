@@ -44,6 +44,7 @@ html:has(#analytics-dashboard) #content {
   padding: 30px 10px 56px;
   color: var(--dash-ink);
   position: relative;
+  font-family: "Trebuchet MS", "Segoe UI", sans-serif;
 }
 
 #analytics-dashboard::before {
@@ -90,7 +91,10 @@ html:has(#analytics-dashboard) #content {
   color: var(--dash-ink);
   font-size: clamp(2.4rem, 4vw, 4.6rem);
   margin: 0;
-  letter-spacing: -0.04em;
+  letter-spacing: -0.02em;
+  line-height: 0.98;
+  max-width: 720px;
+  font-family: Georgia, "Times New Roman", serif;
 }
 
 .analytics-intro {
@@ -119,7 +123,15 @@ html:has(#analytics-dashboard) #content {
 .analytics-button:hover,
 .analytics-pill:hover {
   transform: translateY(-1px);
-  box-shadow: 0 12px 28px rgba(212, 175, 103, 0.15);
+  box-shadow: 0 10px 20px rgba(18, 61, 53, 0.14);
+}
+
+.analytics-home-link:focus-visible,
+.analytics-button:focus-visible,
+.analytics-pill:focus-visible,
+.analytics-reports .button:focus-visible {
+  outline: 3px solid var(--dash-gold-2);
+  outline-offset: 3px;
 }
 
 .analytics-brand-strip {
@@ -143,14 +155,14 @@ html:has(#analytics-dashboard) #content {
 
 .analytics-brand-mark .brand-label {
   font-size: 1.1rem;
-  color: var(--dash-ink);
+  color: #f9f6ef;
   font-weight: 900;
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
 
 .analytics-brand-mark small {
-  color: var(--dash-muted);
+  color: #b8e5c7;
   letter-spacing: 0.12em;
   text-transform: uppercase;
   font-size: 10px;
@@ -228,7 +240,7 @@ html:has(#analytics-dashboard) #content {
 .analytics-pill {
   background: transparent;
   color: var(--dash-muted);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(18, 61, 53, 0.2);
   padding: 9px 12px;
   cursor: pointer;
 }
@@ -246,9 +258,9 @@ html:has(#analytics-dashboard) #content {
 }
 
 .analytics-button.ghost {
-  background: rgba(255, 255, 255, 0.02);
+  background: var(--dash-panel);
   color: var(--dash-ink);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--dash-line);
 }
 
 .analytics-button.primary {
@@ -268,7 +280,7 @@ html:has(#analytics-dashboard) #content {
   background: var(--dash-panel);
   border: 1px solid var(--dash-line);
   border-radius: 4px;
-  box-shadow: 0 18px 32px var(--dash-shadow);
+  box-shadow: 0 12px 28px var(--dash-shadow);
   padding: 22px;
   animation: fadeUp 0.45s ease both;
 }
@@ -323,6 +335,7 @@ html:has(#analytics-dashboard) #content {
   font-size: clamp(2rem, 2.5vw, 2.7rem);
   line-height: 1.1;
   margin: 12px 0 6px;
+  font-family: Georgia, "Times New Roman", serif;
 }
 
 .analytics-card small {
@@ -356,6 +369,8 @@ html:has(#analytics-dashboard) #content {
   color: var(--dash-ink);
   font-size: 1.25rem;
   margin: 0;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 1.45rem;
 }
 
 .analytics-panel-mark {
@@ -367,6 +382,8 @@ html:has(#analytics-dashboard) #content {
 
 .analytics-chart {
   height: 270px;
+  border-top: 1px solid var(--dash-line);
+  padding-top: 16px;
 }
 
 .analytics-products-panel .analytics-chart {
@@ -415,7 +432,7 @@ html:has(#analytics-dashboard) #content {
   background: rgba(255, 255, 255, 0.1);
   border: 1px solid rgba(255, 255, 255, 0.2);
   border-radius: 10px;
-  color: var(--dash-ink);
+  color: #f9f6ef;
   font-size: 12px;
   font-weight: 700;
   padding: 10px 12px;
@@ -457,7 +474,7 @@ html:has(#analytics-dashboard) #content {
 }
 
 .analytics-stock-row strong {
-  color: var(--dash-gold-2);
+  color: var(--dash-red);
   font-size: 12px;
 }
 
@@ -475,6 +492,21 @@ html:has(#analytics-dashboard) #content {
     transform: translateY(0);
     opacity: 1;
   }
+}
+
+.analytics-summary .analytics-card:nth-child(2),
+.analytics-grid .analytics-module:nth-child(2) {
+  animation-delay: 80ms;
+}
+
+.analytics-summary .analytics-card:nth-child(3),
+.analytics-grid .analytics-module:nth-child(3) {
+  animation-delay: 160ms;
+}
+
+.analytics-summary .analytics-card:nth-child(4),
+.analytics-grid .analytics-module:nth-child(4) {
+  animation-delay: 240ms;
 }
 
 @media (max-width: 900px) {
@@ -519,6 +551,18 @@ html:has(#analytics-dashboard) #content {
     font-size: 28px;
   }
 
+  .analytics-hero h1 {
+    font-size: 2.8rem;
+  }
+
+  html:has(#analytics-dashboard) #content {
+    padding: 0 14px;
+  }
+
+  #analytics-dashboard {
+    padding: 20px 0 36px;
+  }
+
   .analytics-filter-group,
   .analytics-action-group {
     width: 100%;
@@ -527,6 +571,13 @@ html:has(#analytics-dashboard) #content {
   .analytics-button,
   .analytics-pill {
     flex: 1 1 auto;
+  }
+
+  .analytics-brand-strip,
+  .analytics-toolbar,
+  .analytics-card,
+  .analytics-module {
+    padding: 16px;
   }
 }
 
