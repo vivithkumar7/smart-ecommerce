@@ -23,6 +23,8 @@ class ProductResponse(ProductBase):
     id: int
     is_active: bool
     created_at: Optional[datetime] = None
+    average_rating: Optional[float] = None
+    total_reviews: int = 0
 
     class Config:
         from_attributes = True

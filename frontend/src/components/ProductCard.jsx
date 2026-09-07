@@ -1,7 +1,11 @@
+import { useNavigate } from "react-router-dom";
+
 export default function ProductCard({
   product,
   onAddToCart,
 }) {
+
+  const navigate = useNavigate();
 
   const {
     id,
@@ -10,13 +14,15 @@ export default function ProductCard({
     category,
     price,
     popularity,
+    average_rating,
+    total_reviews,
     stock,
     image_url,
   } = product;
 
 
   return (
-    <div className="product-card">
+    <div className="product-card" onClick={() => navigate(`/products/${id}`)}>
       <div className="product-image-container">
         {image_url ? (
           <img
@@ -45,7 +51,8 @@ export default function ProductCard({
           <span className="product-category">{category}</span>
           <span className="product-rating">
             <span className="rating-star">★</span>
-            {popularity}
+            {average_rating ? average_rating.toFixed(1) : popularity}
+            {total_reviews > 0 && <small> ({total_reviews})</small>}
           </span>
         </div>
 
@@ -60,7 +67,10 @@ export default function ProductCard({
         <button
           className="add-cart-button"
           disabled={stock <= 0}
-          onClick={() => onAddToCart(id)}
+          onClick={(event) => {
+            event.stopPropagation();
+            onAddToCart(id);
+          }}
         >
           {stock > 0 ? "Add to Cart" : "Out of Stock"}
         </button>

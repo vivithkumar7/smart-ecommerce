@@ -34,6 +34,9 @@ import Notifications
 import Orders
   from "./pages/Orders";
 
+import ProductDetails
+  from "./pages/ProductDetails";
+
 import { getCart }
   from "./api/cartApi";
 
@@ -157,6 +160,15 @@ function AppContent() {
           element={
             <ProtectedRoute>
               <Products />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/products/:productId"
+          element={
+            <ProtectedRoute>
+              <ProductDetails />
             </ProtectedRoute>
           }
         />

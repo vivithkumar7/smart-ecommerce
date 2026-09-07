@@ -12,3 +12,9 @@ SOURCE migrations/001_user_roles_and_activation.sql;
 
 This adds `role` (customer, staff, or admin) and `is_active` to `users`.
 Existing users are assigned the customer role and remain active.
+
+Apply the reviews migration for existing databases:
+
+```sql
+SOURCE migrations/002_reviews.sql;
+```

@@ -8,9 +8,11 @@ from fastapi import (
 )
 
 from sqlalchemy.orm import Session
+from sqlalchemy import func
 
 from app.core.database import get_db
 from app.models.product import Product
+from app.models.review import Review
 from app.schemas.product import ProductResponse
 
 
@@ -18,6 +20,35 @@ router = APIRouter(
     prefix="/products",
     tags=["Products"]
 )
+
+
+def add_rating_aggregates(products, db: Session):
+    if not products:
+        return products
+
+    product_ids = [product.id for product in products]
+    aggregates = db.query(
+        Review.product_id,
+        func.avg(Review.rating).label("average_rating"),
+        func.count(Review.id).label("total_reviews"),
+    ).filter(
+        Review.product_id.in_(product_ids),
+        Review.status == "approved",
+    ).group_by(
+        Review.product_id,
+    ).all()
+    aggregate_by_product = {
+        product_id: (float(average_rating), int(total_reviews))
+        for product_id, average_rating, total_reviews in aggregates
+    }
+
+    for product in products:
+        product.average_rating, product.total_reviews = aggregate_by_product.get(
+            product.id,
+            (None, 0),
+        )
+
+    return products
 
 
 # =====================================================
@@ -102,7 +133,7 @@ def get_products(
         Product.popularity.desc()
     )
 
-    return query.all()
+    return add_rating_aggregates(query.all(), db)
 
 
 # =====================================================
@@ -130,7 +161,7 @@ def get_product(
             detail="Product not found"
         )
 
-    return product
+    return add_rating_aggregates([product], db)[0]
 
 
 # =====================================================
@@ -153,4 +184,4 @@ def get_products_by_category(
         Product.popularity.desc()
     ).all()
 
-    return products
+    return add_rating_aggregates(products, db)
