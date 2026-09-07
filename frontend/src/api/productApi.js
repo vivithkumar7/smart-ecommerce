@@ -45,3 +45,8 @@ export const getProductsByCategory = async (category) => {
 
   return response.data;
 };
+
+export const getProductCategories = async () => {
+  const response = await api.get("/products/categories");
+  return response.data;
+};

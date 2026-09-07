@@ -141,6 +141,26 @@ def get_products(
 # =====================================================
 
 @router.get(
+    "/categories",
+    response_model=list[str],
+)
+def get_product_categories(db: Session = Depends(get_db)):
+    return [
+        category
+        for (category,) in db.query(Product.category)
+        .filter(Product.is_active == True, Product.category.isnot(None))
+        .distinct()
+        .order_by(Product.category)
+        .all()
+        if category
+    ]
+
+
+# =====================================================
+# GET PRODUCT BY ID
+# =====================================================
+
+@router.get(
     "/{product_id}",
     response_model=ProductResponse
 )

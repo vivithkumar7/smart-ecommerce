@@ -2,8 +2,9 @@ from django.contrib import admin
 from django.contrib import messages
 from django.core.files.storage import default_storage
 from django.db import connection, transaction
+from django.utils import timezone
 
-from .forms import OrderAdminForm, PaymentAdminForm, ProductAdminForm, StoreUserForm
+from .forms import OrderAdminForm, PaymentAdminForm, ProductAdminForm, ReviewAdminForm, StoreUserForm
 from .models import Order, OrderItem, Payment, Product, Review, ReturnRequest, StoreUser
 
 
@@ -198,8 +199,14 @@ class ReturnRequestAdmin(admin.ModelAdmin):
 
 @admin.register(Review)
 class ReviewAdmin(admin.ModelAdmin):
+    form = ReviewAdminForm
     list_display = ("id", "product", "user", "rating", "status", "created_at")
     list_filter = ("status", "rating", "created_at")
     search_fields = ("product__name", "user__email", "comment")
-    readonly_fields = ("id", "user", "product", "rating", "comment", "created_at")
+    readonly_fields = ("id", "created_at")
     list_editable = ("status",)
+
+    def save_model(self, request, obj, form, change):
+        if not obj.created_at:
+            obj.created_at = timezone.now()
+        super().save_model(request, obj, form, change)

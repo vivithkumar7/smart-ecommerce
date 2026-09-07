@@ -200,9 +200,25 @@
   padding: 20px;
   border-radius: 22px;
   border: 1px solid rgba(255, 255, 255, 0.08);
+  color: inherit;
+  cursor: pointer;
+  text-align: left;
   background: rgba(255, 255, 255, 0.04);
   -webkit-backdrop-filter: blur(8px);
   backdrop-filter: blur(8px);
+  transition: transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+}
+
+.category-card:hover,
+.category-card:focus-visible {
+  transform: translateY(-5px);
+  border-color: rgba(244, 208, 139, 0.55);
+  box-shadow: 0 18px 34px rgba(0, 0, 0, 0.24);
+}
+
+.category-card:focus-visible {
+  outline: 3px solid #f4d08b;
+  outline-offset: 4px;
 }
 
 .category-card-glow {
@@ -230,6 +246,18 @@
   color: #f8f2e8;
   font-size: 1.4rem;
   line-height: 1.2;
+}
+
+.category-card em {
+  position: relative;
+  z-index: 1;
+  margin-top: 18px;
+  color: #d7cab3;
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  opacity: 0.82;
 }
 
 .category-card.amber {

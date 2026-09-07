@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 
 import {
-  getProducts
+  getProducts,
+  getProductCategories,
 } from "../api/productApi";
 
 import {
@@ -26,6 +27,9 @@ export default function Products() {
 
   const [error, setError] =
     useState("");
+
+  const [categories, setCategories] =
+    useState([]);
 
   const [filters, setFilters] =
     useState({
@@ -70,6 +74,12 @@ export default function Products() {
     loadProducts();
 
   }, [filters]);
+
+  useEffect(() => {
+    getProductCategories()
+      .then(setCategories)
+      .catch(() => setCategories([]));
+  }, []);
 
 
   const handleAddToCart = async (
@@ -123,10 +133,18 @@ export default function Products() {
   ];
 
   const categoryHighlights = [
-    { title: "Home & Living", subtitle: "Soft luxury essentials", tone: "amber" },
-    { title: "Tech & Audio", subtitle: "Modern utility, refined", tone: "dark" },
-    { title: "Wellness", subtitle: "Everyday rituals", tone: "gold" },
+    { title: "Electronics", subtitle: "Modern utility, refined", tone: "dark" },
+    { title: "Footwear", subtitle: "Comfort with character", tone: "amber" },
+    { title: "Bags", subtitle: "Everyday pieces, elevated", tone: "gold" },
   ];
+
+  const selectCategory = (category) => {
+    setFilters((currentFilters) => ({
+      ...currentFilters,
+      category,
+    }));
+    document.querySelector(".products-results")?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
 
   const editorialStories = [
     { title: "Crafted for slower living", text: "Thoughtful objects chosen to make everyday rituals feel more considered and beautifully lived-in." },
@@ -194,11 +212,18 @@ export default function Products() {
 
         <div className="category-showcase">
           {categoryHighlights.map((category) => (
-            <div key={category.title} className={`category-card ${category.tone}`}>
+            <button
+              key={category.title}
+              type="button"
+              className={`category-card ${category.tone}`}
+              onClick={() => selectCategory(category.title)}
+              aria-label={`Browse ${category.title}`}
+            >
               <div className="category-card-glow" />
               <span>{category.title}</span>
               <strong>{category.subtitle}</strong>
-            </div>
+              <em>Browse collection →</em>
+            </button>
           ))}
         </div>
 
@@ -230,13 +255,14 @@ export default function Products() {
         </div>
 
 
-        <div className="products-layout">
+        <div className="products-layout products-results">
 
 
           <ProductFilters
             filters={filters}
             setFilters={setFilters}
             clearFilters={clearFilters}
+            categories={categories}
           />
 
 

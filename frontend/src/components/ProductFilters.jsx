@@ -2,6 +2,7 @@ export default function ProductFilters({
   filters,
   setFilters,
   clearFilters,
+  categories = [],
 }) {
 
   const handleChange = (event) => {
@@ -49,17 +50,11 @@ export default function ProductFilters({
             All Categories
           </option>
 
-          <option value="Electronics">
-            Electronics
-          </option>
-
-          <option value="Footwear">
-            Footwear
-          </option>
-
-          <option value="Bags">
-            Bags
-          </option>
+          {categories.map((category) => (
+            <option key={category} value={category}>
+              {category}
+            </option>
+          ))}
 
         </select>
 

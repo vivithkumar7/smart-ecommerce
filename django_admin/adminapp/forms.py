@@ -3,7 +3,7 @@ from passlib.context import CryptContext
 
 from django.utils import timezone
 
-from .models import Order, Payment, Product, StoreUser
+from .models import Order, Payment, Product, Review, StoreUser
 
 
 password_context = CryptContext(schemes=["pbkdf2_sha256"], deprecated="auto")
@@ -51,3 +51,25 @@ class PaymentAdminForm(forms.ModelForm):
     class Meta:
         model = Payment
         fields = ("order", "amount", "payment_method", "transaction_id", "status", "timestamp")
+
+
+class ReviewAdminForm(forms.ModelForm):
+    rating = forms.IntegerField(min_value=1, max_value=5)
+
+    class Meta:
+        model = Review
+        fields = ("user", "product", "rating", "comment", "status")
+
+    def clean(self):
+        cleaned_data = super().clean()
+        user = cleaned_data.get("user")
+        product = cleaned_data.get("product")
+        if user and product:
+            duplicate = Review.objects.filter(user=user, product=product)
+            if self.instance.pk:
+                duplicate = duplicate.exclude(pk=self.instance.pk)
+            if duplicate.exists():
+                raise forms.ValidationError(
+                    "This user has already reviewed this product."
+                )
+        return cleaned_data
