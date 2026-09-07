@@ -3,7 +3,7 @@ import { useNavigate, useParams } from "react-router-dom";
 
 import { addToCart } from "../api/cartApi";
 import { getProductById } from "../api/productApi";
-import { getProductReviews } from "../api/reviewApi";
+import { createReview, getProductReviews } from "../api/reviewApi";
 import { StarRating } from "../components/StarRating";
 
 import "../styles/product-details.css";
@@ -16,6 +16,12 @@ export default function ProductDetails() {
   const [reviews, setReviews] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [showReviewForm, setShowReviewForm] = useState(false);
+  const [reviewRating, setReviewRating] = useState(5);
+  const [reviewComment, setReviewComment] = useState("");
+  const [reviewMessage, setReviewMessage] = useState("");
+  const [reviewError, setReviewError] = useState("");
+  const [submittingReview, setSubmittingReview] = useState(false);
 
   useEffect(() => {
     const loadProduct = async () => {
@@ -51,6 +57,30 @@ export default function ProductDetails() {
     }
   };
 
+  const handleSubmitReview = async (event) => {
+    event.preventDefault();
+    setSubmittingReview(true);
+    setReviewError("");
+    setReviewMessage("");
+
+    try {
+      await createReview({
+        product_id: product.id,
+        rating: reviewRating,
+        comment: reviewComment.trim() || null,
+      });
+      setReviewMessage("Review submitted and awaiting approval.");
+      setReviewComment("");
+      setShowReviewForm(false);
+    } catch (submitError) {
+      setReviewError(
+        submitError.response?.data?.detail || "Unable to submit your review.",
+      );
+    } finally {
+      setSubmittingReview(false);
+    }
+  };
+
   if (loading) return <main className="product-details-page"><p className="product-details-state">Loading product...</p></main>;
   if (error || !product) return <main className="product-details-page"><p className="product-details-state error">{error || "Product not found."}</p></main>;
 
@@ -77,6 +107,17 @@ export default function ProductDetails() {
               <strong>{product.average_rating ? product.average_rating.toFixed(1) : "New"}</strong>
               <span>{product.total_reviews} {product.total_reviews === 1 ? "review" : "reviews"}</span>
             </div>
+            <button
+              type="button"
+              className="write-review-button"
+              onClick={() => {
+                setReviewError("");
+                setReviewMessage("");
+                setShowReviewForm((visible) => !visible);
+              }}
+            >
+              {showReviewForm ? "Close review form" : "Write a review"}
+            </button>
             <p className="product-detail-description">{product.description}</p>
             <div className="product-detail-buy-row">
               <strong className="product-detail-price">₹{Number(product.price).toLocaleString("en-IN")}</strong>
@@ -86,6 +127,40 @@ export default function ProductDetails() {
             </div>
           </div>
         </section>
+
+        {showReviewForm && (
+          <form className="review-form" onSubmit={handleSubmitReview}>
+            <div>
+              <span className="section-kicker">Your experience</span>
+              <h2>Write a review</h2>
+            </div>
+            <label htmlFor="review-rating">Rating</label>
+            <select
+              id="review-rating"
+              value={reviewRating}
+              onChange={(event) => setReviewRating(Number(event.target.value))}
+            >
+              <option value="5">5 stars - Excellent</option>
+              <option value="4">4 stars - Very good</option>
+              <option value="3">3 stars - Good</option>
+              <option value="2">2 stars - Fair</option>
+              <option value="1">1 star - Poor</option>
+            </select>
+            <label htmlFor="review-comment">Comment</label>
+            <textarea
+              id="review-comment"
+              value={reviewComment}
+              onChange={(event) => setReviewComment(event.target.value)}
+              placeholder="What did you think of this product?"
+              rows="4"
+            />
+            {reviewError && <p className="review-form-error">{reviewError}</p>}
+            {reviewMessage && <p className="review-form-success">{reviewMessage}</p>}
+            <button type="submit" className="product-detail-cart" disabled={submittingReview}>
+              {submittingReview ? "Submitting..." : "Submit review"}
+            </button>
+          </form>
+        )}
 
         <section className="reviews-section" aria-labelledby="reviews-heading">
           <div className="reviews-heading-row">
