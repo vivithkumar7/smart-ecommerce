@@ -78,6 +78,12 @@ export default function ProductDetails() {
       setReviewMessage("Review submitted and awaiting approval.");
       setReviewComment("");
       setShowReviewForm(false);
+      const [updatedProduct, updatedReviews] = await Promise.all([
+        getProductById(productId),
+        getProductReviews(productId),
+      ]);
+      setProduct(updatedProduct);
+      setReviews(updatedReviews);
     } catch (submitError) {
       setReviewError(
         submitError.response?.data?.detail || "Unable to submit your review.",
@@ -143,19 +149,13 @@ export default function ProductDetails() {
             <div>
               <span className="section-kicker">Your experience</span>
               <h2>Write a review</h2>
+              <p className="review-form-note">Reviews are available after a delivered purchase and are published after approval.</p>
             </div>
-            <label htmlFor="review-rating">Rating</label>
-            <select
-              id="review-rating"
-              value={reviewRating}
-              onChange={(event) => setReviewRating(Number(event.target.value))}
-            >
-              <option value="5">5 stars - Excellent</option>
-              <option value="4">4 stars - Very good</option>
-              <option value="3">3 stars - Good</option>
-              <option value="2">2 stars - Fair</option>
-              <option value="1">1 star - Poor</option>
-            </select>
+            <div className="review-rating-field">
+              <span className="review-field-label">Rating</span>
+              <StarRating rating={reviewRating} interactive onChange={setReviewRating} />
+              <span className="review-rating-value">{reviewRating} / 5</span>
+            </div>
             <label htmlFor="review-comment">Comment</label>
             <textarea
               id="review-comment"
