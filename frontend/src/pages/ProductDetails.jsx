@@ -2,9 +2,10 @@ import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 
 import { addToCart } from "../api/cartApi";
-import { getProductById } from "../api/productApi";
+import { getProductById, getSimilarProducts } from "../api/productApi";
 import { createReview, getProductReviews } from "../api/reviewApi";
 import { StarRating } from "../components/StarRating";
+import RecommendationSection from "../components/RecommendationSection";
 
 import "../styles/product-details.css";
 
@@ -14,6 +15,7 @@ export default function ProductDetails() {
   const navigate = useNavigate();
   const [product, setProduct] = useState(null);
   const [reviews, setReviews] = useState([]);
+  const [similarProducts, setSimilarProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [showReviewForm, setShowReviewForm] = useState(false);
@@ -27,12 +29,14 @@ export default function ProductDetails() {
     const loadProduct = async () => {
       try {
         setLoading(true);
-        const [productData, reviewData] = await Promise.all([
+        const [productData, reviewData, similarData] = await Promise.all([
           getProductById(productId),
           getProductReviews(productId),
+          getSimilarProducts(productId),
         ]);
         setProduct(productData);
         setReviews(reviewData);
+        setSimilarProducts(similarData);
       } catch (loadError) {
         setError(loadError.response?.data?.detail || "Unable to load this product.");
       } finally {
@@ -48,9 +52,9 @@ export default function ProductDetails() {
     [reviews],
   );
 
-  const handleAddToCart = async () => {
+  const handleAddToCart = async (productId = product.id) => {
     try {
-      await addToCart(product.id, 1);
+      await addToCart(productId, 1);
       window.alert("Product added to cart!");
     } catch (addError) {
       window.alert(addError.response?.data?.detail || "Unable to add product.");
@@ -143,6 +147,13 @@ export default function ProductDetails() {
             </div>
           </div>
         </section>
+
+        <RecommendationSection
+          title="Similar Products"
+          eyebrow="Complements this choice"
+          products={similarProducts}
+          onAddToCart={handleAddToCart}
+        />
 
         {showReviewForm && (
           <form className="review-form" onSubmit={handleSubmitReview}>

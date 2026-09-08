@@ -16,6 +16,7 @@ from app.models import (
     Payment,
     Notification,
     Review,
+    ProductView,
 )
 
 from app.routes.product import router as product_router
@@ -24,6 +25,8 @@ from app.routes.auth import router as auth_router
 from app.routes.checkout import router as checkout_router
 from app.routes.notifications import router as notifications_router
 from app.routes.reviews import router as reviews_router
+from app.routes.emails import router as emails_router
+from app.routes.recommendations import router as recommendations_router
 
 
 # Create tables
@@ -71,6 +74,10 @@ app.include_router(
 )
 
 app.include_router(
+    recommendations_router
+)
+
+app.include_router(
     product_router
 )
 
@@ -88,6 +95,10 @@ app.include_router(
 
 app.include_router(
     reviews_router
+)
+
+app.include_router(
+    emails_router
 )
 
 

@@ -10,6 +10,11 @@ import {
 } from "../api/cartApi";
 
 import ProductCard from "../components/ProductCard";
+import RecommendationSection from "../components/RecommendationSection";
+import {
+  getRecommendations,
+  getTrendingProducts,
+} from "../api/productApi";
 
 import ProductFilters
   from "../components/ProductFilters";
@@ -30,6 +35,11 @@ export default function Products() {
 
   const [categories, setCategories] =
     useState([]);
+
+  const [recommendations, setRecommendations] = useState([]);
+  const [recommendationsLoading, setRecommendationsLoading] = useState(true);
+  const [trendingProducts, setTrendingProducts] = useState([]);
+  const [trendingLoading, setTrendingLoading] = useState(true);
 
   const [filters, setFilters] =
     useState({
@@ -79,6 +89,21 @@ export default function Products() {
     getProductCategories()
       .then(setCategories)
       .catch(() => setCategories([]));
+
+    const userId = localStorage.getItem("user_id");
+    const loadRecommendations = userId
+      ? getRecommendations(userId)
+      : getTrendingProducts();
+
+    loadRecommendations
+      .then(setRecommendations)
+      .catch(() => setRecommendations([]))
+      .finally(() => setRecommendationsLoading(false));
+
+    getTrendingProducts()
+      .then(setTrendingProducts)
+      .catch(() => setTrendingProducts([]))
+      .finally(() => setTrendingLoading(false));
   }, []);
 
 
@@ -231,8 +256,11 @@ export default function Products() {
           <div>
             <span className="sale-tag">Member exclusive</span>
             <h2>Up to 40% off premium essentials.</h2>
+            <p className="sale-instructions">
+              <strong>How to apply:</strong> sign in, choose a premium product, and add it to your cart. The offer is applied at checkout.
+            </p>
           </div>
-          <button type="button" className="sale-button">Claim offer</button>
+          <a className="sale-button" href="#products-results">Apply offer</a>
         </div>
 
         <section className="editorial-grid" aria-label="Brand editorial highlights">
@@ -254,8 +282,26 @@ export default function Products() {
           ))}
         </div>
 
+        <RecommendationSection
+          title="Recommended For You"
+          eyebrow="Picked around your taste"
+          products={recommendations}
+          loading={recommendationsLoading}
+          onAddToCart={handleAddToCart}
+          showViewMore
+        />
 
-        <div className="products-layout products-results">
+        <RecommendationSection
+          title="Trending"
+          eyebrow="Trending now"
+          products={trendingProducts}
+          loading={trendingLoading}
+          onAddToCart={handleAddToCart}
+          showViewMore
+        />
+
+
+        <div id="products-results" className="products-layout products-results">
 
 
           <ProductFilters

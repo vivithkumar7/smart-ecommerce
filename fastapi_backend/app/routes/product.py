@@ -13,6 +13,8 @@ from sqlalchemy import func
 from app.core.database import get_db
 from app.models.product import Product
 from app.models.review import Review
+from app.models.product_view import ProductView
+from app.dependencies.auth import get_current_user_optional
 from app.schemas.product import ProductResponse
 
 
@@ -166,6 +168,7 @@ def get_product_categories(db: Session = Depends(get_db)):
 )
 def get_product(
     product_id: int,
+    current_user=Depends(get_current_user_optional),
     db: Session = Depends(get_db)
 ):
 
@@ -180,6 +183,12 @@ def get_product(
             status_code=404,
             detail="Product not found"
         )
+
+    db.add(ProductView(
+        product_id=product.id,
+        user_id=current_user.id if current_user else None,
+    ))
+    db.commit()
 
     return add_rating_aggregates([product], db)[0]
 

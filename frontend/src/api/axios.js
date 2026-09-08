@@ -36,6 +36,7 @@ api.interceptors.response.use(
     if (error.response?.status === 401) {
       localStorage.removeItem("access_token");
       localStorage.removeItem("token_type");
+      localStorage.removeItem("user_id");
 
       if (window.location.pathname !== "/login") {
         window.location.assign("/login");

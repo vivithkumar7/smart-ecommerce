@@ -49,6 +49,10 @@ export default function Navbar({
       "token_type"
     );
 
+    localStorage.removeItem(
+      "user_id"
+    );
+
     navigate("/login");
 
   };

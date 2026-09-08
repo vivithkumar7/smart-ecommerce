@@ -34,10 +34,7 @@
   position: absolute;
   inset: 0;
   content: "";
-  background:
-    linear-gradient(90deg, rgba(18, 22, 28, 0.98) 0%, rgba(18, 22, 28, 0.86) 42%, rgba(18, 22, 28, 0.35) 100%),
-    url("../assets/hero.png") no-repeat right center;
-  background-size: cover, 380px auto;
+  background: linear-gradient(90deg, rgba(18, 22, 28, 0.98) 0%, rgba(18, 22, 28, 0.86) 42%, rgba(18, 22, 28, 0.35) 100%);
   opacity: 0.95;
   pointer-events: none;
 }
@@ -300,7 +297,21 @@
   font-size: clamp(1.6rem, 3vw, 2.6rem);
 }
 
+.sale-instructions {
+  max-width: 680px;
+  margin: 10px 0 0;
+  color: #d7cab3;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.sale-instructions strong {
+  color: #f4d08b;
+}
+
 .sale-button {
+  display: inline-flex;
+  align-items: center;
   border: none;
   border-radius: 12px;
   padding: 12px 20px;
@@ -308,6 +319,7 @@
   color: #111111;
   font-weight: 800;
   cursor: pointer;
+  text-decoration: none;
   transition: transform 0.2s ease, box-shadow 0.2s ease;
   box-shadow: 0 10px 18px rgba(212, 175, 103, 0.15);
 }

@@ -50,3 +50,18 @@ export const getProductCategories = async () => {
   const response = await api.get("/products/categories");
   return response.data;
 };
+
+export const getRecommendations = async (userId) => {
+  const response = await api.get(`/recommendations/${userId}`);
+  return response.data;
+};
+
+export const getSimilarProducts = async (productId) => {
+  const response = await api.get(`/products/${productId}/similar`);
+  return response.data;
+};
+
+export const getTrendingProducts = async () => {
+  const response = await api.get("/products/trending");
+  return response.data;
+};

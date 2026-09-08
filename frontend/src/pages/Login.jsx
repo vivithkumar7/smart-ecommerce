@@ -69,15 +69,18 @@ export default function Login() {
         "token_type",
         data.token_type || "bearer"
       );
+      if (data.user_id) localStorage.setItem("user_id", data.user_id);
 
 
       if (isRegistering) {
         const loginData = await loginUser(email, password);
         localStorage.setItem("access_token", loginData.access_token);
         localStorage.setItem("token_type", loginData.token_type || "bearer");
+        if (loginData.user_id) localStorage.setItem("user_id", loginData.user_id);
       } else {
         localStorage.setItem("access_token", data.access_token);
         localStorage.setItem("token_type", data.token_type || "bearer");
+        if (data.user_id) localStorage.setItem("user_id", data.user_id);
       }
 
       navigate("/");

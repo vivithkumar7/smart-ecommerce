@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 import { getOrders, requestReturn } from "../api/orderApi";
 import "../styles/notifications.css";
@@ -58,6 +59,7 @@ const getStatusIcon = (status) => {
 };
 
 export default function Orders() {
+  const navigate = useNavigate();
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(null);
@@ -157,6 +159,12 @@ export default function Orders() {
   };
 
   const orderCountLabel = useMemo(() => `${orders.length} order${orders.length === 1 ? "" : "s"}`, [orders.length]);
+  const deliveredProducts = useMemo(
+    () => orders
+      .filter((order) => String(order.order_status || "").trim().toLowerCase() === "delivered")
+      .flatMap((order) => order.items || []),
+    [orders],
+  );
 
   const handleReturnRequest = async (orderId) => {
     if (!returnForm.reason || !returnForm.condition || !returnForm.packaging) {
@@ -193,6 +201,35 @@ export default function Orders() {
           <p>{orderCountLabel}</p>
         </div>
       </div>
+
+      {deliveredProducts.length > 0 && (
+        <section className="delivered-products-section" aria-labelledby="delivered-products-heading">
+          <div className="delivered-products-heading">
+            <div>
+              <p className="orders-eyebrow">Your delivered purchases</p>
+              <h2 id="delivered-products-heading">Delivered Products</h2>
+            </div>
+            <span>{deliveredProducts.length} product{deliveredProducts.length === 1 ? "" : "s"}</span>
+          </div>
+          <div className="delivered-products-list">
+            {deliveredProducts.map((item, index) => (
+              <button
+                className="delivered-product-card"
+                key={`${item.product_id}-${index}`}
+                type="button"
+                onClick={() => navigate(`/products/${item.product_id}`)}
+              >
+                <span className="delivered-product-icon" aria-hidden="true">✓</span>
+                <span className="delivered-product-copy">
+                  <strong>{item.product_name}</strong>
+                  <span>Qty {item.quantity} · View product</span>
+                </span>
+                <span className="delivered-product-arrow" aria-hidden="true">→</span>
+              </button>
+            ))}
+          </div>
+        </section>
+      )}
 
       <section className="orders-list" aria-label="My orders">
         {orders.length === 0 && (
@@ -258,10 +295,16 @@ export default function Orders() {
               {order.items?.length > 0 && (
                 <div className="order-items">
                   {order.items.map((item) => (
-                    <div className="order-item" key={`${order.id}-${item.product_id}`}>
+                    <button
+                      className={`order-item${String(order.order_status || "").trim().toLowerCase() === "delivered" ? " is-clickable" : ""}`}
+                      key={`${order.id}-${item.product_id}`}
+                      type="button"
+                      disabled={String(order.order_status || "").trim().toLowerCase() !== "delivered"}
+                      onClick={() => navigate(`/products/${item.product_id}`)}
+                    >
                       <span>{item.product_name}</span>
-                      <span>Qty {item.quantity}</span>
-                    </div>
+                      <span>Qty {item.quantity}{String(order.order_status || "").trim().toLowerCase() === "delivered" ? " · View" : ""}</span>
+                    </button>
                   ))}
                 </div>
               )}
