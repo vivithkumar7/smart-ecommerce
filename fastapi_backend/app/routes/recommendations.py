@@ -9,6 +9,7 @@ from app.models.order import Order, OrderItem
 from app.models.product import Product
 from app.models.product_view import ProductView
 from app.models.review import Review
+from app.dependencies.auth import get_current_user
 from app.routes.product import add_rating_aggregates
 from app.schemas.product import ProductResponse
 
@@ -43,7 +44,14 @@ def _similarity_score(candidate: Product, source: Product):
 
 
 @router.get("/recommendations/{user_id}", response_model=list[ProductResponse])
-def get_recommendations(user_id: int, db: Session = Depends(get_db)):
+def get_recommendations(
+    user_id: int,
+    current_user=Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    if current_user.id != user_id:
+        raise HTTPException(status_code=403, detail="Cannot access another user's recommendations")
+
     products, products_by_id = _active_products(db)
     if not products:
         return []

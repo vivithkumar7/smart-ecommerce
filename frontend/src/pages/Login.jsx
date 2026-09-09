@@ -110,6 +110,36 @@ export default function Login() {
 
     <div className="login-page">
 
+      <section className="login-showcase" aria-label="SmartShop collection">
+        <div className="showcase-topline">
+          <span className="showcase-mark">S</span>
+          <span>SmartShop</span>
+        </div>
+
+        <div className="showcase-copy">
+          <p className="showcase-kicker">A better way to shop</p>
+          <h2>Find pieces that feel like you.</h2>
+          <p>Curated products, thoughtful details, and a smoother everyday checkout.</p>
+        </div>
+
+        <div className="showcase-art" aria-hidden="true">
+          <div className="art-orbit art-orbit-one" />
+          <div className="art-orbit art-orbit-two" />
+          <div className="art-product art-product-back" />
+          <div className="art-product art-product-front">
+            <span className="art-product-label">NEW<br />SEASON</span>
+          </div>
+          <span className="art-spark spark-one">+</span>
+          <span className="art-spark spark-two">+</span>
+        </div>
+
+        <div className="showcase-footer">
+          <span>01</span>
+          <span className="showcase-line" />
+          <span>Everyday essentials</span>
+        </div>
+      </section>
+
       <div className="login-card">
 
         <div className="login-header">

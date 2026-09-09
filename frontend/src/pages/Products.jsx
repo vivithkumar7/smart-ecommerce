@@ -292,8 +292,8 @@ export default function Products() {
         />
 
         <RecommendationSection
-          title="Trending"
-          eyebrow="Trending now"
+          title="You May Also Like"
+          eyebrow="Popular with other shoppers"
           products={trendingProducts}
           loading={trendingLoading}
           onAddToCart={handleAddToCart}

@@ -2,7 +2,11 @@ import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 
 import { addToCart } from "../api/cartApi";
-import { getProductById, getSimilarProducts } from "../api/productApi";
+import {
+  getProductById,
+  getSimilarProducts,
+  getTrendingProducts,
+} from "../api/productApi";
 import { createReview, getProductReviews } from "../api/reviewApi";
 import { StarRating } from "../components/StarRating";
 import RecommendationSection from "../components/RecommendationSection";
@@ -16,6 +20,7 @@ export default function ProductDetails() {
   const [product, setProduct] = useState(null);
   const [reviews, setReviews] = useState([]);
   const [similarProducts, setSimilarProducts] = useState([]);
+  const [recommendedProducts, setRecommendedProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [showReviewForm, setShowReviewForm] = useState(false);
@@ -29,14 +34,16 @@ export default function ProductDetails() {
     const loadProduct = async () => {
       try {
         setLoading(true);
-        const [productData, reviewData, similarData] = await Promise.all([
+        const [productData, reviewData, similarData, recommendedData] = await Promise.all([
           getProductById(productId),
           getProductReviews(productId),
           getSimilarProducts(productId),
+          getTrendingProducts(),
         ]);
         setProduct(productData);
         setReviews(reviewData);
         setSimilarProducts(similarData);
+        setRecommendedProducts(recommendedData);
       } catch (loadError) {
         setError(loadError.response?.data?.detail || "Unable to load this product.");
       } finally {
@@ -153,6 +160,14 @@ export default function ProductDetails() {
           eyebrow="Complements this choice"
           products={similarProducts}
           onAddToCart={handleAddToCart}
+        />
+
+        <RecommendationSection
+          title="You May Also Like"
+          eyebrow="Popular with other shoppers"
+          products={recommendedProducts.filter((item) => item.id !== product.id)}
+          onAddToCart={handleAddToCart}
+          showViewMore
         />
 
         {showReviewForm && (
