@@ -396,6 +396,12 @@ export default function Orders() {
                       <div><span>Estimated delivery</span><strong>{deliveryDetails.date}</strong></div>
                       <div><span>Payment status</span><strong>{String(order.payment_status || "pending").replaceAll("_", " ")}</strong></div>
                     </div>
+                    {order.delivery_address && (
+                      <div className="order-delivery-address">
+                        <span>Delivery address</span>
+                        <strong>{order.delivery_name}<br />{order.delivery_address}, {order.delivery_city}, {order.delivery_state} {order.delivery_postal_code}<br />{order.delivery_phone}</strong>
+                      </div>
+                    )}
                     <div className="delivery-callout">
                       <span className="delivery-callout-icon" aria-hidden="true">🚚</span>
                       <div><strong>{deliveryDetails.title}</strong><p>{deliveryDetails.message}</p></div>

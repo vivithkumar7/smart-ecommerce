@@ -18,3 +18,9 @@ Apply the reviews migration for existing databases:
 ```sql
 SOURCE migrations/002_reviews.sql;
 ```
+
+Apply the delivery details migration for existing databases:
+
+```sql
+SOURCE migrations/004_order_delivery_details.sql;
+```

@@ -509,6 +509,30 @@
   overflow-wrap: anywhere;
 }
 
+.order-delivery-address {
+  display: grid;
+  gap: 6px;
+  padding: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  background: rgba(0, 0, 0, 0.12);
+}
+
+.order-delivery-address span {
+  color: #b9b0a0;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.order-delivery-address strong {
+  color: #f8f2e8;
+  font-size: 0.92rem;
+  line-height: 1.55;
+  overflow-wrap: anywhere;
+}
+
 .delivery-callout {
   display: flex;
   align-items: center;

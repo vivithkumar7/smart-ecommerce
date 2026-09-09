@@ -27,6 +27,14 @@ export default function Checkout() {
   const [cartLoading, setCartLoading] = useState(true);
   const [loading, setLoading] = useState(false);
   const [cardDetails, setCardDetails] = useState({ number: "", expiry: "", cvv: "", name: "" });
+  const [deliveryDetails, setDeliveryDetails] = useState({
+    delivery_name: "",
+    delivery_phone: "",
+    delivery_address: "",
+    delivery_city: "",
+    delivery_state: "",
+    delivery_postal_code: "",
+  });
   const [qrCode, setQrCode] = useState("");
   const [selectedPayment, setSelectedPayment] = useState("card");
   const paymentSucceeded = searchParams.get("success") === "true";
@@ -57,12 +65,16 @@ export default function Checkout() {
 
   const handleCheckout = async () => {
     try {
+      if (Object.values(deliveryDetails).some((value) => !value.trim())) {
+        alert("Please enter your complete delivery details before continuing.");
+        return;
+      }
       if (isCardPayment && Object.values(cardDetails).some((value) => !value.trim())) {
         alert("Please enter all card details before continuing.");
         return;
       }
       setLoading(true);
-      const payment = await checkoutCart(selectedPayment);
+      const payment = await checkoutCart(selectedPayment, deliveryDetails);
 
       if (selectedPayment === "cod") {
         navigate(`/checkout?success=true&order_id=${payment.order_id}`);
@@ -145,6 +157,20 @@ export default function Checkout() {
                     <div><span>Subtotal</span><strong>{formatCurrency(cart.subtotal)}</strong></div>
                     <div><span>Tax (2%)</span><strong>{formatCurrency(cart.tax)}</strong></div>
                     <div className="invoice-grand-total"><span>Total due</span><strong>{formatCurrency(cart.grand_total)}</strong></div>
+                  </div>
+                  <div className="delivery-form">
+                    <div>
+                      <span className="invoice-label">Delivery details</span>
+                      <h3>Where should we deliver?</h3>
+                    </div>
+                    <div className="delivery-form-grid">
+                      <label>Full name<input value={deliveryDetails.delivery_name} onChange={(event) => setDeliveryDetails({ ...deliveryDetails, delivery_name: event.target.value })} autoComplete="name" /></label>
+                      <label>Phone number<input type="tel" value={deliveryDetails.delivery_phone} onChange={(event) => setDeliveryDetails({ ...deliveryDetails, delivery_phone: event.target.value })} autoComplete="tel" /></label>
+                      <label className="delivery-form-wide">Street address<input value={deliveryDetails.delivery_address} onChange={(event) => setDeliveryDetails({ ...deliveryDetails, delivery_address: event.target.value })} autoComplete="street-address" /></label>
+                      <label>City<input value={deliveryDetails.delivery_city} onChange={(event) => setDeliveryDetails({ ...deliveryDetails, delivery_city: event.target.value })} autoComplete="address-level2" /></label>
+                      <label>State<input value={deliveryDetails.delivery_state} onChange={(event) => setDeliveryDetails({ ...deliveryDetails, delivery_state: event.target.value })} autoComplete="address-level1" /></label>
+                      <label>Postal code<input inputMode="numeric" value={deliveryDetails.delivery_postal_code} onChange={(event) => setDeliveryDetails({ ...deliveryDetails, delivery_postal_code: event.target.value })} autoComplete="postal-code" /></label>
+                    </div>
                   </div>
                 </>
               ) : (

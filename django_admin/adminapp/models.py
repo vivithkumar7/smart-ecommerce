@@ -51,6 +51,12 @@ class Order(models.Model):
     total = models.FloatField()
     payment_status = models.CharField(max_length=30)
     order_status = models.CharField(max_length=30)
+    delivery_name = models.CharField(max_length=120, blank=True, null=True)
+    delivery_phone = models.CharField(max_length=30, blank=True, null=True)
+    delivery_address = models.CharField(max_length=255, blank=True, null=True)
+    delivery_city = models.CharField(max_length=100, blank=True, null=True)
+    delivery_state = models.CharField(max_length=100, blank=True, null=True)
+    delivery_postal_code = models.CharField(max_length=20, blank=True, null=True)
     created_at = models.DateTimeField()
 
     class Meta:

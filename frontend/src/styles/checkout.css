@@ -132,6 +132,50 @@
   font-size: 19px;
 }
 
+.delivery-form {
+  margin-top: 28px;
+  padding-top: 24px;
+  border-top: 1px solid rgba(212, 175, 101, 0.12);
+}
+
+.delivery-form h3 {
+  margin: 8px 0 18px;
+  color: #f8f2e8;
+  font-size: 20px;
+}
+
+.delivery-form-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.delivery-form label {
+  display: grid;
+  gap: 7px;
+  color: #d7cab3;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.delivery-form input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 11px 12px;
+  border: 1px solid rgba(212, 175, 101, 0.22);
+  border-radius: 9px;
+  color: #f8f2e8;
+  background: rgba(255, 255, 255, 0.05);
+  font: inherit;
+}
+
+.delivery-form input:focus {
+  outline: 2px solid rgba(244, 208, 139, 0.55);
+  outline-offset: 1px;
+}
+
+.delivery-form-wide { grid-column: span 3; }
+
 .payment-card {
   position: relative;
   overflow: hidden;
@@ -464,6 +508,8 @@
   .checkout-page { padding: 34px 16px 60px; }
   .checkout-heading { align-items: start; flex-direction: column; gap: 16px; }
   .checkout-layout { grid-template-columns: 1fr; }
+  .delivery-form-grid { grid-template-columns: 1fr; }
+  .delivery-form-wide { grid-column: auto; }
   .invoice-card, .payment-card { padding: 22px; }
   .checkout-status { align-items: start; flex-wrap: wrap; }
   .checkout-status button { width: 100%; margin-left: 58px; }

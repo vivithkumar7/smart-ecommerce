@@ -135,11 +135,25 @@ class PaymentInline(admin.TabularInline):
 @admin.register(Order)
 class OrderAdmin(admin.ModelAdmin):
     form = OrderAdminForm
-    list_display = ("id", "user", "total", "payment_status", "order_status", "created_at")
+    list_display = ("id", "user", "total", "payment_status", "order_status", "delivery_recipient", "delivery_city", "created_at")
     list_filter = ("payment_status", "order_status")
-    search_fields = ("user__email",)
+    search_fields = ("user__email", "delivery_name", "delivery_phone", "delivery_city", "delivery_postal_code")
     readonly_fields = ("id", "created_at")
     inlines = (OrderItemInline, PaymentInline)
+    actions = ("mark_as_delivered",)
+
+    @admin.action(description="Mark selected orders as delivered")
+    def mark_as_delivered(self, request, queryset):
+        updated_count = queryset.update(order_status="delivered")
+        self.message_user(
+            request,
+            f"{updated_count} order(s) marked as delivered.",
+            messages.SUCCESS,
+        )
+
+    @admin.display(description="Delivery recipient")
+    def delivery_recipient(self, order):
+        return order.delivery_name or "Not provided"
 
     def _delete_orders_with_related_data(self, order_ids):
         order_ids = list(order_ids)

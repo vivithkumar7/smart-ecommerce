@@ -26,6 +26,12 @@ class Order(Base):
     total = Column(Float, nullable=False)
     payment_status = Column(String(30), nullable=False, default="pending")
     order_status = Column(String(30), nullable=False, default="pending")
+    delivery_name = Column(String(120), nullable=True)
+    delivery_phone = Column(String(30), nullable=True)
+    delivery_address = Column(String(255), nullable=True)
+    delivery_city = Column(String(100), nullable=True)
+    delivery_state = Column(String(100), nullable=True)
+    delivery_postal_code = Column(String(20), nullable=True)
     created_at = Column(DateTime, server_default=func.now(), nullable=False)
 
     user = relationship("User")

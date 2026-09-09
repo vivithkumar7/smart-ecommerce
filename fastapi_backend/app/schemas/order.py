@@ -44,6 +44,12 @@ class ReturnRequestResponse(BaseModel):
 
 class CheckoutRequest(BaseModel):
     payment_method: str = "card"
+    delivery_name: Optional[str] = None
+    delivery_phone: Optional[str] = None
+    delivery_address: Optional[str] = None
+    delivery_city: Optional[str] = None
+    delivery_state: Optional[str] = None
+    delivery_postal_code: Optional[str] = None
 
 
 class CheckoutResponse(BaseModel):
@@ -65,6 +71,12 @@ class OrderResponse(BaseModel):
     total: float
     payment_status: str
     order_status: str
+    delivery_name: Optional[str] = None
+    delivery_phone: Optional[str] = None
+    delivery_address: Optional[str] = None
+    delivery_city: Optional[str] = None
+    delivery_state: Optional[str] = None
+    delivery_postal_code: Optional[str] = None
     created_at: datetime
     items: List[OrderItemResponse]
     payments: List[PaymentResponse]

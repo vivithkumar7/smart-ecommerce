@@ -152,6 +152,16 @@ export default function ProductDetails() {
                 {product.stock > 0 ? "Add to cart" : "Out of stock"}
               </button>
             </div>
+            {product.stock > 0 && (
+              <div className="product-delivery-details" aria-label="Product delivery details">
+                <div className="product-delivery-icon" aria-hidden="true">⌁</div>
+                <div>
+                  <strong>Free delivery</strong>
+                  <p>Estimated arrival {getDeliveryWindow()}</p>
+                  <span>7-day returns after delivery</span>
+                </div>
+              </div>
+            )}
           </div>
         </section>
 
@@ -237,6 +247,15 @@ export default function ProductDetails() {
       </div>
     </main>
   );
+}
+
+function getDeliveryWindow() {
+  const start = new Date();
+  const end = new Date();
+  start.setDate(start.getDate() + 3);
+  end.setDate(end.getDate() + 5);
+  const formatDate = (date) => date.toLocaleDateString("en-IN", { day: "numeric", month: "short" });
+  return `${formatDate(start)} - ${formatDate(end)}`;
 }
 
 

@@ -1,0 +1,6 @@
+ALTER TABLE orders ADD COLUMN delivery_name VARCHAR(120) NULL;
+ALTER TABLE orders ADD COLUMN delivery_phone VARCHAR(30) NULL;
+ALTER TABLE orders ADD COLUMN delivery_address VARCHAR(255) NULL;
+ALTER TABLE orders ADD COLUMN delivery_city VARCHAR(100) NULL;
+ALTER TABLE orders ADD COLUMN delivery_state VARCHAR(100) NULL;
+ALTER TABLE orders ADD COLUMN delivery_postal_code VARCHAR(20) NULL;

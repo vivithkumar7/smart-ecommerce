@@ -42,7 +42,11 @@ class ProductAdminForm(forms.ModelForm):
 class OrderAdminForm(forms.ModelForm):
     class Meta:
         model = Order
-        fields = ("user", "total", "payment_status", "order_status")
+        fields = (
+            "user", "total", "payment_status", "order_status",
+            "delivery_name", "delivery_phone", "delivery_address",
+            "delivery_city", "delivery_state", "delivery_postal_code",
+        )
 
 
 class PaymentAdminForm(forms.ModelForm):

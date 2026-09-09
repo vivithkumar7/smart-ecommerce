@@ -286,6 +286,12 @@ async def checkout(
         total=total,
         payment_status="pending",
         order_status="pending",
+        delivery_name=checkout_request.delivery_name,
+        delivery_phone=checkout_request.delivery_phone,
+        delivery_address=checkout_request.delivery_address,
+        delivery_city=checkout_request.delivery_city,
+        delivery_state=checkout_request.delivery_state,
+        delivery_postal_code=checkout_request.delivery_postal_code,
     )
     db.add(order)
     db.flush()
