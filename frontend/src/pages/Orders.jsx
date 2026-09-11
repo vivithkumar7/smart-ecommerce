@@ -24,6 +24,11 @@ const normalizeStatus = (status) => {
   return String(status).trim();
 };
 
+const orderStatusKey = (order) => String(order?.order_status || "").trim().toLowerCase();
+const isDelivered = (order) => orderStatusKey(order) === "delivered";
+const isShipped = (order) => orderStatusKey(order) === "shipped";
+const isReturnRequested = (order) => orderStatusKey(order) === "return requested";
+
 const statusTone = (status) => {
   if (!status) return "neutral";
   const key = status.toLowerCase();
@@ -86,8 +91,7 @@ export default function Orders() {
 
   const canRequestReturn = (order) => {
     if (!order) return false;
-    const statusLower = String(order.order_status || "").trim().toLowerCase();
-    if (statusLower !== "delivered") return false;
+    if (!isDelivered(order)) return false;
     
     const createdAt = new Date(order.created_at);
     const cutoff = new Date(createdAt);
@@ -98,7 +102,7 @@ export default function Orders() {
   const getReturnEligibilityMessage = (order) => {
     if (!order) return "Only delivered orders are eligible.";
 
-    const statusLower = String(order.order_status || "").trim().toLowerCase();
+    const statusLower = orderStatusKey(order);
 
     if (statusLower === "delivered") {
       const createdAt = new Date(order.created_at);
@@ -161,7 +165,7 @@ export default function Orders() {
   const orderCountLabel = useMemo(() => `${orders.length} order${orders.length === 1 ? "" : "s"}`, [orders.length]);
   const deliveredProducts = useMemo(
     () => orders
-      .filter((order) => String(order.order_status || "").trim().toLowerCase() === "delivered")
+      .filter(isDelivered)
       .flatMap((order) => order.items || []),
     [orders],
   );
@@ -279,7 +283,7 @@ export default function Orders() {
                 </div>
               </div>
 
-              {order.order_status === "shipped" && (
+              {isShipped(order) && (
                 <div className="tracking-card">
                   <div className="tracking-card-content">
                     <div className="tracking-left">
@@ -296,14 +300,14 @@ export default function Orders() {
                 <div className="order-items">
                   {order.items.map((item) => (
                     <button
-                      className={`order-item${String(order.order_status || "").trim().toLowerCase() === "delivered" ? " is-clickable" : ""}`}
+                      className={`order-item${isDelivered(order) ? " is-clickable" : ""}`}
                       key={`${order.id}-${item.product_id}`}
                       type="button"
-                      disabled={String(order.order_status || "").trim().toLowerCase() !== "delivered"}
+                      disabled={!isDelivered(order)}
                       onClick={() => navigate(`/products/${item.product_id}`)}
                     >
                       <span>{item.product_name}</span>
-                      <span>Qty {item.quantity}{String(order.order_status || "").trim().toLowerCase() === "delivered" ? " · View" : ""}</span>
+                      <span>Qty {item.quantity}{isDelivered(order) ? " · View" : ""}</span>
                     </button>
                   ))}
                 </div>
@@ -409,11 +413,11 @@ export default function Orders() {
                   </div>
                 )}
 
-                {!canRequestReturn(order) && order.order_status !== "Return Requested" && order.order_status !== "return requested" && (
+                {!canRequestReturn(order) && !isReturnRequested(order) && (
                   <span className="info-note">{getReturnEligibilityMessage(order)}</span>
                 )}
 
-                {(order.order_status === "Return Requested" || order.order_status === "return requested") && (
+                {isReturnRequested(order) && (
                   <span className="success-note">Return requested. We are reviewing it.</span>
                 )}
               </div>

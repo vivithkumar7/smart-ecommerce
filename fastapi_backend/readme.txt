@@ -2,7 +2,8 @@ Smart E-Commerce
 ================
 
 This repository contains a React/Vite storefront and a FastAPI backend. The
-backend provides authentication, products, cart, orders, and Stripe checkout.
+backend provides authentication, products, cart, orders, blog management, and
+Stripe checkout.
 
 Project folders
 ---------------
@@ -33,6 +34,8 @@ the MySQL client:
 
 Use the actual username, password, host, port, and database name in the
 DATABASE_URL below. The application creates its tables when it starts.
+The blog ORM uses a separate SQLite database at `fastapi_backend/blog.db` so
+the existing e-commerce MySQL database remains unchanged.
 
 2. Configure the backend
 ------------------------
@@ -47,7 +50,7 @@ Open PowerShell in `fastapi_backend` and create a virtual environment:
 
 Create a file named `.env` inside `fastapi_backend` with these values:
 
-  DATABASE_URL=mysql+pymysql://smart_user:change-this-password@localhost/smart_ecommerce
+  DATABASE_URL=mysql+pymysql://smart_user:change-this-password@localhost:3306/smart_ecommerce
   SECRET_KEY=replace-with-a-long-random-value
   CHECKOUT_MODE=mock
   STRIPE_SECRET_KEY=sk_test_replace-me
@@ -219,6 +222,26 @@ Allowed statuses are pending, paid, shipped, delivered, and cancelled. The
 endpoint creates an order_status_updated notification and sends its email only
 after the status change is committed.
 
+Blog
+----
+Published posts are public:
+
+  GET /blog/posts?search=home&category=guides&skip=0&limit=20
+  GET /blog/posts/{slug}
+
+Authenticated users can create posts and manage their own drafts. Admin users
+can manage all posts:
+
+  GET    /blog/posts/manage
+  POST   /blog/posts
+  PATCH  /blog/posts/{post_id}
+  DELETE /blog/posts/{post_id}
+
+Create and update requests accept `title`, `content`, optional `excerpt` and
+`category`, and `status` (`draft` or `published`). Slugs are generated from
+titles and made unique automatically. Management endpoints require the same
+JWT Bearer authentication used by the rest of the API.
+
 API docs are available at /docs and /redoc.
 
 Useful API routes
@@ -233,6 +256,8 @@ Useful API routes
     POST /checkout
     GET  /orders/{order_id}
     POST /stripe/webhook
+    GET  /blog/posts
+    POST /blog/posts
 
 Authentication uses a JWT Bearer token. The frontend stores the token in
 `localStorage` under `access_token` and sends it automatically with API calls.

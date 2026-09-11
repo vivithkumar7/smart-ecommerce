@@ -4,6 +4,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
+from app.blog_schema import create_blog_tables
 from app.core.database import Base, engine
 
 from app.models import (
@@ -17,6 +18,7 @@ from app.models import (
     Notification,
     Review,
     ProductView,
+    BlogPost,
 )
 
 from app.routes.product import router as product_router
@@ -27,12 +29,15 @@ from app.routes.notifications import router as notifications_router
 from app.routes.reviews import router as reviews_router
 from app.routes.emails import router as emails_router
 from app.routes.recommendations import router as recommendations_router
+from app.routes.blog import router as blog_router
+from app.routes.sqlite_blog import router as sqlite_blog_router
 
 
 # Create tables
 Base.metadata.create_all(
     bind=engine
 )
+create_blog_tables()
 
 
 app = FastAPI(
@@ -99,6 +104,15 @@ app.include_router(
 
 app.include_router(
     emails_router
+)
+
+app.include_router(
+    blog_router,
+    prefix="/blog/posts",
+)
+
+app.include_router(
+    sqlite_blog_router,
 )
 
 

@@ -8,3 +8,4 @@ from app.models.return_request import ReturnRequest
 from app.models.refund import Refund
 from app.models.review import Review
 from app.models.product_view import ProductView
+from app.models.blog_post import BlogComment, BlogLike, BlogPost

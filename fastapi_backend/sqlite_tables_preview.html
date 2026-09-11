@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>SQLite Blog Tables</title>
+  <style>
+    :root { color-scheme: light; font-family: "Segoe UI", sans-serif; background: #eef2f5; color: #1b2733; }
+    body { margin: 0; padding: 32px; }
+    header { max-width: 1100px; margin: 0 auto 24px; }
+    h1 { margin: 0 0 6px; font-size: 30px; }
+    p { margin: 0; color: #617080; }
+    main { max-width: 1100px; margin: auto; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; }
+    section { background: #fff; border: 1px solid #d6dee6; border-radius: 10px; overflow: hidden; box-shadow: 0 5px 18px #26374612; }
+    .title { padding: 18px 20px; border-bottom: 1px solid #e4e9ee; display: flex; justify-content: space-between; align-items: baseline; }
+    h2 { margin: 0; font-size: 21px; }
+    .count { color: #687888; font-size: 13px; }
+    table { width: 100%; border-collapse: collapse; }
+    th, td { text-align: left; padding: 12px 20px; border-bottom: 1px solid #edf0f3; font-size: 14px; }
+    th { color: #526474; background: #f7f9fb; font-weight: 600; }
+    td { color: #263746; }
+    tr:last-child td { border-bottom: 0; }
+    .empty { color: #82909d; font-style: italic; }
+    @media (max-width: 760px) { body { padding: 18px; } main { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>SQLite blog database</h1>
+    <p>Database: <strong>fastapi_backend/blog.db</strong> · Verified with SQLAlchemy ORM · Current row count: 0</p>
+  </header>
+  <main>
+    <section id="users"><div class="title"><h2>users</h2><span class="count">0 rows</span></div><table><thead><tr><th>Column</th><th>Type</th><th>Constraints</th></tr></thead><tbody><tr><td>id</td><td>INTEGER</td><td>PRIMARY KEY</td></tr><tr><td>username</td><td>VARCHAR(100)</td><td>UNIQUE, NOT NULL</td></tr><tr><td>email</td><td>VARCHAR(255)</td><td>UNIQUE, NOT NULL</td></tr><tr><td>password</td><td>VARCHAR(255)</td><td>NOT NULL, HASHED</td></tr></tbody></table></section>
+    <section id="posts"><div class="title"><h2>posts</h2><span class="count">0 rows</span></div><table><thead><tr><th>Column</th><th>Type</th><th>Constraints</th></tr></thead><tbody><tr><td>id</td><td>INTEGER</td><td>PRIMARY KEY</td></tr><tr><td>title</td><td>VARCHAR(200)</td><td>NOT NULL</td></tr><tr><td>content</td><td>TEXT</td><td>NOT NULL</td></tr><tr><td>author_id</td><td>INTEGER</td><td>FK users.id, NOT NULL</td></tr><tr><td>created_at</td><td>DATETIME</td><td>NOT NULL</td></tr></tbody></table></section>
+    <section id="comments"><div class="title"><h2>comments</h2><span class="count">0 rows</span></div><table><thead><tr><th>Column</th><th>Type</th><th>Constraints</th></tr></thead><tbody><tr><td>id</td><td>INTEGER</td><td>PRIMARY KEY</td></tr><tr><td>post_id</td><td>INTEGER</td><td>FK posts.id, NOT NULL</td></tr><tr><td>user_id</td><td>INTEGER</td><td>FK users.id, NOT NULL</td></tr><tr><td>text</td><td>TEXT</td><td>NOT NULL</td></tr><tr><td>created_at</td><td>DATETIME</td><td>NOT NULL</td></tr></tbody></table></section>
+    <section id="likes"><div class="title"><h2>likes</h2><span class="count">0 rows</span></div><table><thead><tr><th>Column</th><th>Type</th><th>Constraints</th></tr></thead><tbody><tr><td>id</td><td>INTEGER</td><td>PRIMARY KEY</td></tr><tr><td>post_id</td><td>INTEGER</td><td>FK posts.id, NOT NULL</td></tr><tr><td>user_id</td><td>INTEGER</td><td>FK users.id, NOT NULL</td></tr><tr><td colspan="3" class="empty">UNIQUE(post_id, user_id) prevents duplicate likes</td></tr></tbody></table></section>
+  </main>
+</body>
+</html>

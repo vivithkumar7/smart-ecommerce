@@ -24,3 +24,9 @@ Apply the delivery details migration for existing databases:
 ```sql
 SOURCE migrations/004_order_delivery_details.sql;
 ```
+
+Apply the blog system migration for existing databases:
+
+```sql
+SOURCE migrations/005_blog_system.sql;
+```
